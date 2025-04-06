@@ -81,13 +81,9 @@ body::before {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: 
-        radial-gradient(circle at 10% 20%, rgba(255, 0, 128, 0.1), transparent 40%),
-        radial-gradient(circle at 90% 30%, rgba(0, 128, 255, 0.1), transparent 40%),
-        radial-gradient(circle at 50% 80%, rgba(128, 255, 0, 0.1), transparent 40%);
-    filter: blur(60px);
-    animation: gradientBG 15s ease infinite;
-    background-size: 200% 200%;
+    background: linear-gradient(135deg, #1a1d3b, #141832);
+    background-size: cover;
+    filter: blur(10px);
 }
 
 a {
@@ -682,32 +678,6 @@ footer .footer-content .copyright {
     transform: scale(0.95);
 }
 
-/* Page Transition Animation */
-.page-transition {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--accent-color);
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0;
-    animation: page-flash 0.5s ease-in-out forwards;
-}
-
-@keyframes page-flash {
-    0% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 0.2;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
 /* Button Hover Effects */
 .filter-btn, .toggle-btn, .tag, .search-container input {
     transition: all 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
@@ -749,4 +719,313 @@ input:focus, textarea:focus, select:focus {
 
 .category-card:hover::before, .resource-card:hover::before {
     opacity: 1;
+}
+
+/* Notification Settings Styles */
+.notification-settings {
+    padding: 8rem 2rem 4rem;
+    min-height: calc(100vh - 200px);
+}
+
+.notification-settings .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-settings h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.notification-settings .description {
+    color: var(--secondary-color);
+    margin-bottom: 2rem;
+}
+
+.preferences-form .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preferences-form .form-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.preferences-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-top: 0.5rem;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.category-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.category-checkbox:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.save-button {
+    background: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.save-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* Notification Toast */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    animation: slideIn 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.success {
+    background: #10B981;
+}
+
+.notification.error {
+    background: #EF4444;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Form Input Styles */
+.notification-settings input[type="tel"],
+.notification-settings select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.notification-settings input[type="tel"]:focus,
+.notification-settings select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.notification-settings input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--accent-color);
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.notification-settings input[type="checkbox"]:checked {
+    background: var(--accent-color);
+}
+
+.notification-settings input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+}
+
+/* Login Button Styles */
+.login-btn {
+    background: var(--accent-color);
+    color: white !important;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    background: #4f46e5;
+}
+
+.login-btn::after {
+    display: none;
+}
+
+/* Dashboard Styles */
+.dashboard {
+    padding: 8rem 2rem 4rem;
+    min-height: calc(100vh - 200px);
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+}
+
+.dashboard-sidebar {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: fit-content;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-profile {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    border: 3px solid var(--accent-color);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dashboard-menu {
+    list-style: none;
+}
+
+.dashboard-menu li {
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.dashboard-menu a:hover, .dashboard-menu a.active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-content {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+}
+
+.recent-activity {
+    margin-top: 2rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+} 
 } 

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Universal Resource Hub</title>
+    <link rel="stylesheet" href="public/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="public/js/auth.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">URH</div>
+                <span class="logo-text">Universal Resource Hub</span>
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="categories.html">Categories</a></li>
+                <li><a href="resources.html">Resources</a></li>
+            </ul>
+        </nav>
+        <div class="nav-icons">
+            <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+            <button id="notifications"><i class="fas fa-bell"></i></button>
+            <button onclick="signOut()" class="login-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <div class="dashboard-container">
+            <aside class="dashboard-sidebar">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img src="https://via.placeholder.com/100" alt="User Avatar" id="user-avatar">
+                    </div>
+                    <h2 id="user-name">Loading...</h2>
+                    <p id="user-email">Loading...</p>
+                </div>
+                <ul class="dashboard-menu">
+                    <li><a href="#" class="active"><i class="fas fa-chart-line"></i> Overview</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Saved Resources</a></li>
+                    <li><a href="#"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="notification-settings.html"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </aside>
+
+            <div class="dashboard-content">
+                <h1>Dashboard Overview</h1>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3 id="saved-resources-count">0</h3>
+                        <p>Saved Resources</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="categories-followed-count">0</h3>
+                        <p>Categories Followed</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="resources-viewed-count">0</h3>
+                        <p>Resources Viewed</p>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h2>Recent Activity</h2>
+                    <div id="activity-list">
+                        <div class="activity-item">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <div>
+                                <h4>Loading activities...</h4>
+                                <p>Please wait</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo">
+                <div class="logo-icon">URH</div>
+                Universal Resource Hub
+            </div>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <div class="contact-info">
+                <p>Email: contact@urh.com</p>
+                <p>Phone: (555) 123-4567</p>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2024 Universal Resource Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Check if user is authenticated
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await getCurrentUser();
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Update user profile
+            document.getElementById('user-name').textContent = user.user_metadata.full_name || 'User';
+            document.getElementById('user-email').textContent = user.email;
+
+            // Load user statistics
+            try {
+                const { data: stats, error } = await supabase
+                    .from('user_statistics')
+                    .select('saved_resources, categories_followed, resources_viewed')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                if (stats) {
+                    document.getElementById('saved-resources-count').textContent = stats.saved_resources;
+                    document.getElementById('categories-followed-count').textContent = stats.categories_followed;
+                    document.getElementById('resources-viewed-count').textContent = stats.resources_viewed;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+
+            // Load recent activities
+            try {
+                const { data: activities, error } = await supabase
+                    .from('user_activities')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                const activityList = document.getElementById('activity-list');
+                activityList.innerHTML = '';
+
+                if (activities && activities.length > 0) {
+                    activities.forEach(activity => {
+                        activityList.innerHTML += `
+                            <div class="activity-item">
+                                <i class="fas ${getActivityIcon(activity.type)}"></i>
+                                <div>
+                                    <h4>${activity.title}</h4>
+                                    <p>${activity.description} - ${formatDate(activity.created_at)}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    activityList.innerHTML = `
+                        <div class="activity-item">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <h4>No recent activity</h4>
+                                <p>Start exploring resources to see your activity here!</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading activities:', error);
+            }
+        });
+
+        // Helper function to get activity icon
+        function getActivityIcon(type) {
+            const icons = {
+                'save': 'fa-bookmark',
+                'view': 'fa-eye',
+                'notification': 'fa-bell',
+                'update': 'fa-pencil-alt'
+            };
+            return icons[type] || 'fa-circle';
+        }
+
+        // Helper function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+            if (diff < 2592000000) return `${Math.floor(diff / 86400000)} days ago`;
+            
+            return date.toLocaleDateString();
+        }
+    </script>
+</body>
+</html> 

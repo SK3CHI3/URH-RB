@@ -62,28 +62,28 @@ document.addEventListener('DOMContentLoaded', () => {
     addButtonAnimations();
 
     // Smooth page transitions when clicking navigation links
-    const pageLinks = document.querySelectorAll('nav a, .logo a, .category-card a, .resource-card a');
+    // const pageLinks = document.querySelectorAll('nav a, .logo a, .category-card a, .resource-card a');
     
-    pageLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            // Only intercept links to pages within our site
-            const href = link.getAttribute('href');
+    // pageLinks.forEach(link => {
+    //     link.addEventListener('click', (e) => {
+    //         // Only intercept links to pages within our site
+    //         const href = link.getAttribute('href');
+        
+    //         if (href && (href.startsWith('/') || href.startsWith('./') || href.startsWith('#'))) {
+    //             e.preventDefault();
             
-            if (href && (href.startsWith('/') || href.startsWith('./') || href.startsWith('#'))) {
-                e.preventDefault();
-                
-                // Create flash animation
-                const flash = document.createElement('div');
-                flash.classList.add('page-transition');
-                document.body.appendChild(flash);
-                
-                // After animation completes, navigate to the page
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 500);
-            }
-        });
-    });
+    //             // Create flash animation
+    //             const flash = document.createElement('div');
+    //             flash.classList.add('page-transition');
+    //             document.body.appendChild(flash);
+            
+    //             // After animation completes, navigate to the page
+    //             setTimeout(() => {
+    //                 window.location.href = href;
+    //             }, 500);
+    //         }
+    //     });
+    // });
 
     // Highlight navigation link based on scroll position
     const sections = document.querySelectorAll('section');

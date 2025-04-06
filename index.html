@@ -6,6 +6,8 @@
     <title>Universal Resource Hub</title>
     <link rel="stylesheet" href="public/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="public/js/auth.js"></script>
 </head>
 <body>
     <header>
@@ -23,15 +25,9 @@
             </ul>
         </nav>
         <div class="nav-icons">
-            <button class="theme-toggle">
-                <i class="fas fa-sun"></i>
-            </button>
-            <button class="search-btn">
-                <i class="fas fa-search"></i>
-            </button>
-            <button class="bookmark-btn">
-                <i class="fas fa-bookmark"></i>
-            </button>
+            <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+            <button id="notifications"><i class="fas fa-bell"></i></button>
+            <a href="login.html" class="login-btn">Login / Sign Up</a>
         </div>
     </header>
 
