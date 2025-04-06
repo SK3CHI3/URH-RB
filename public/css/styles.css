@@ -138,7 +138,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0.75rem 2rem;
     background: var(--header-bg);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -151,6 +151,7 @@ header {
     max-width: 1200px;
     z-index: 1000;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
 }
 
 .logo-container {
@@ -172,8 +173,8 @@ header {
 .logo-icon {
     background-color: var(--logo-bg);
     color: var(--primary-color);
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -189,7 +190,7 @@ header {
 }
 
 .logo-text {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     background: linear-gradient(90deg, #5d5fef, #a5b4fc);
     -webkit-background-clip: text;
     background-clip: text;
@@ -205,7 +206,7 @@ nav ul {
 }
 
 nav a {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
     transition: color 0.3s;
     padding: 0.5rem 0;
@@ -222,13 +223,13 @@ nav a:hover, nav a.active {
 }
 
 .nav-icons button {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     transition: color 0.3s, transform 0.3s;
 }
 
 .nav-icons button:hover {
     color: var(--accent-color);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 /* Hero Section */
@@ -932,26 +933,20 @@ input:focus, textarea:focus, select:focus {
 
 /* Login Button Styles */
 .login-btn {
+    padding: 0.5rem 1rem;
     background: var(--accent-color);
-    color: white !important;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
     font-weight: 500;
-    transition: all 0.3s ease;
-    border: none;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .login-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-    background: #4f46e5;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.login-btn::after {
+.login-btn:hover::after {
     display: none;
 }
 
@@ -1063,4 +1058,27 @@ input:focus, textarea:focus, select:focus {
 
 .activity-item:last-child {
     border-bottom: none;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+    header {
+        padding: 0.5rem 1rem;
+    }
+
+    .logo-text {
+        font-size: 1rem;
+    }
+
+    nav ul {
+        gap: 1rem;
+    }
+
+    nav a {
+        font-size: 0.9rem;
+    }
+
+    .nav-icons {
+        gap: 1rem;
+    }
 } 
