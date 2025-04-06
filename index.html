@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Resource Hub</title>
+    <link rel="stylesheet" href="public/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-icon">U</span>
+                <span class="logo-text">Universal Resource Hub</span>
+            </div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Home</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">Resources</a></li>
+            </ul>
+        </nav>
+        <div class="nav-icons">
+            <button class="theme-toggle">
+                <i class="fas fa-sun"></i>
+            </button>
+            <button class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="bookmark-btn">
+                <i class="fas fa-bookmark"></i>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Find Free Resources to Learn, Create, and Innovate</h1>
+            <p>Discover thousands of free resources for technology, design, education, and more.</p>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" placeholder="What are you looking for? (e.g., Free Python Course, Design Templates)">
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories">
+            <h2>Popular Categories</h2>
+            <p>Browse through our curated collection of free resources across various categories</p>
+            
+            <div class="category-grid">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Technology</h3>
+                    <p>Programming tutorials, coding resources, and tech documentation</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <h3>Design</h3>
+                    <p>UI kits, design templates, and creative assets</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Business</h3>
+                    <p>Business templates, guides, and entrepreneurship resources</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>Education</h3>
+                    <p>Online courses, tutorials, and learning materials</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Books</h3>
+                    <p>Free ebooks, digital publications, and reading materials</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <h3>Music</h3>
+                    <p>Music theory, instruments, and audio resources</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section class="resources">
+            <h2>Available Resources</h2>
+            
+            <div class="filter-container">
+                <div class="filter-left">
+                    <button class="filter-icon">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                    <div class="category-filters">
+                        <button class="filter-btn active">All</button>
+                        <button class="filter-btn">Technology</button>
+                        <button class="filter-btn">Design</button>
+                        <button class="filter-btn">Business</button>
+                        <button class="filter-btn">Education</button>
+                        <button class="filter-btn">Books</button>
+                        <button class="filter-btn">Music</button>
+                    </div>
+                </div>
+                <div class="filter-right">
+                    <div class="sort-dropdown">
+                        <button class="sort-btn">
+                            Date Added
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="toggle-btn">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="resources-grid">
+                <!-- Resource Card 1 -->
+                <div class="resource-card">
+                    <div class="resource-image">
+                        <img src="https://images.unsplash.com/photo-1555066931-bf19f8fd1085" alt="Code on screen">
+                    </div>
+                    <div class="resource-content">
+                        <h3>freeCodeCamp - Full Stack Development</h3>
+                        <p>Learn web development with comprehensive courses covering HTML, CSS, JavaScript...</p>
+                        <div class="resource-meta">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.9</span>
+                            </div>
+                            <div class="source">
+                                <p>Source: freeCodeCamp</p>
+                                <p>Added: 20/02/2024</p>
+                            </div>
+                        </div>
+                        <div class="resource-tags">
+                            <span class="tag">Programming</span>
+                            <span class="tag">Web Development</span>
+                            <span class="tag">Full Stack</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resource Card 2 -->
+                <div class="resource-card">
+                    <div class="resource-image">
+                        <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97" alt="Laptop with code">
+                    </div>
+                    <div class="resource-content">
+                        <h3>The Odin Project</h3>
+                        <p>Free full-stack curriculum from basics to advanced web development concepts.</p>
+                        <div class="resource-meta">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.8</span>
+                            </div>
+                            <div class="source">
+                                <p>Source: The Odin Project</p>
+                                <p>Added: 19/02/2024</p>
+                            </div>
+                        </div>
+                        <div class="resource-tags">
+                            <span class="tag">Web Development</span>
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">Ruby</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resource Card 3 -->
+                <div class="resource-card">
+                    <div class="resource-image">
+                        <img src="https://images.unsplash.com/photo-1550063873-ab792950096b" alt="Code editor">
+                    </div>
+                    <div class="resource-content">
+                        <h3>MDN Web Docs</h3>
+                        <p>Comprehensive documentation and learning resources for web technologies.</p>
+                        <div class="resource-meta">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.9</span>
+                            </div>
+                            <div class="source">
+                                <p>Source: Mozilla</p>
+                                <p>Added: 18/02/2024</p>
+                            </div>
+                        </div>
+                        <div class="resource-tags">
+                            <span class="tag">Documentation</span>
+                            <span class="tag">Web Development</span>
+                            <span class="tag">Reference</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Universal Resource Hub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="public/js/main.js"></script>
+</body>
+</html> 
