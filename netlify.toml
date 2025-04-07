@@ -1,0 +1,17 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  external_node_modules = ["@supabase/supabase-js"]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  functions = "netlify/functions"
+  publish = "."
+  port = 3000 

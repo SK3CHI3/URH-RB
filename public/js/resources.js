@@ -20,12 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const baseUrl = window.appConfig?.apiUrl || 'http://localhost:3000';
       
       // Prepare URL with error handling for category parameter
-      let url = `${baseUrl}/api/resources`;
+      let url = `${baseUrl}/resources`; // Remove /api prefix for Netlify Functions
       if (category) {
         // Sanitize category parameter
         const safeCategory = encodeURIComponent(category.trim());
         url += `?category=${safeCategory}`;
       }
+      
+      console.log('Fetching resources from:', url); // Debug log
       
       // Fetch with timeout and error handling
       const controller = new AbortController();
@@ -34,15 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const response = await fetch(url, { 
           signal: controller.signal,
-          headers: { 'Accept': 'application/json' },
-          credentials: 'same-origin' // Include cookies if needed
+          headers: { 
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
         
         // Clear timeout since fetch completed
         clearTimeout(timeoutId);
         
-        // Handle HTTP errors
+        // Handle HTTP errors with more detail
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server response:', errorText);
           throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
         
@@ -51,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           resources = await response.json();
         } catch (jsonError) {
+          console.error('JSON parse error:', jsonError);
           throw new Error('Failed to parse server response');
         }
         

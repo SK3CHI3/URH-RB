@@ -4,7 +4,7 @@ const config = {
         apiUrl: 'http://localhost:3000'
     },
     production: {
-        apiUrl: 'https://urh-rb.onrender.com' // Replace with your actual production URL
+        apiUrl: '/.netlify/functions' // Netlify Functions endpoint
     }
 };
 
