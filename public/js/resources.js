@@ -16,8 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Show loading indicator with proper grid span
       resourcesGrid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading resources...</div>';
       
+      // Get base URL from config
+      const baseUrl = window.appConfig?.apiUrl || 'http://localhost:3000';
+      
       // Prepare URL with error handling for category parameter
-      let url = '/api/resources';
+      let url = `${baseUrl}/api/resources`;
       if (category) {
         // Sanitize category parameter
         const safeCategory = encodeURIComponent(category.trim());
@@ -31,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const response = await fetch(url, { 
           signal: controller.signal,
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin' // Include cookies if needed
         });
         
         // Clear timeout since fetch completed

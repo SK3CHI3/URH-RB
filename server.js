@@ -24,13 +24,40 @@ const PORT = process.env.PORT || 3000;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
-app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// CORS configuration
+const corsOptions = {
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://urh-rb.onrender.com',
+      'https://urh-rb.vercel.app'
+    ];
+    
+    // Allow if origin is in whitelist
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
+
+app.use(cors(corsOptions));
+
 // Serve static files
-app.use(express.static(path.join(__dirname, '/')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // API Routes
 
