@@ -18,9 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Get base URL from config
       const baseUrl = window.appConfig?.apiUrl || 'http://localhost:3000';
+      const isLocalDev = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
       
       // Prepare URL with error handling for category parameter
-      let url = `${baseUrl}/resources`; // Remove /api prefix for Netlify Functions
+      let url = `${baseUrl}${isLocalDev ? '/api' : ''}/resources`; // Add /api prefix only for local development
       if (category) {
         // Sanitize category parameter
         const safeCategory = encodeURIComponent(category.trim());

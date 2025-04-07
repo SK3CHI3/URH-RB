@@ -4,7 +4,7 @@ const config = {
         apiUrl: 'http://localhost:3000'
     },
     production: {
-        apiUrl: '/.netlify/functions' // Netlify Functions endpoint
+        apiUrl: '' // Use relative path to work in any deployment
     }
 };
 
