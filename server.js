@@ -1,4 +1,14 @@
 require('dotenv').config();
+// Immediately verify environment variables are loaded
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('ERROR: Missing Supabase credentials. Please check your .env file');
+  console.log('SUPABASE_URL:', supabaseUrl ? 'Found' : 'Missing');
+  console.log('SUPABASE_KEY:', supabaseKey ? 'Found' : 'Missing');
+}
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -9,9 +19,8 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Supabase client setup (to be configured with actual credentials)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+// Supabase client setup
+// Using the variables we verified above
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
@@ -47,68 +56,52 @@ app.get('/api/categories', async (req, res) => {
 
 // Get resources
 app.get('/api/resources', async (req, res) => {
-    try {
-        const { category, sort } = req.query;
-        
-        // This would fetch from Supabase in a real app
-        const resources = [
-            {
-                id: 1,
-                title: 'freeCodeCamp - Full Stack Development',
-                description: 'Learn web development with comprehensive courses covering HTML, CSS, JavaScript...',
-                image: 'https://images.unsplash.com/photo-1555066931-bf19f8fd1085',
-                rating: 4.9,
-                source: 'freeCodeCamp',
-                date_added: '20/02/2024',
-                tags: ['Programming', 'Web Development', 'Full Stack'],
-                category_id: 1
-            },
-            {
-                id: 2,
-                title: 'The Odin Project',
-                description: 'Free full-stack curriculum from basics to advanced web development concepts.',
-                image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
-                rating: 4.8,
-                source: 'The Odin Project',
-                date_added: '19/02/2024',
-                tags: ['Web Development', 'JavaScript', 'Ruby'],
-                category_id: 1
-            },
-            {
-                id: 3,
-                title: 'MDN Web Docs',
-                description: 'Comprehensive documentation and learning resources for web technologies.',
-                image: 'https://images.unsplash.com/photo-1550063873-ab792950096b',
-                rating: 4.9,
-                source: 'Mozilla',
-                date_added: '18/02/2024',
-                tags: ['Documentation', 'Web Development', 'Reference'],
-                category_id: 1
-            }
-        ];
-        
-        // Filter by category if provided
-        let filteredResources = resources;
-        if (category && category !== 'all') {
-            filteredResources = resources.filter(resource => 
-                resource.tags.includes(category) || 
-                resource.category_id === parseInt(category)
-            );
+  try {
+    const { category } = req.query;
+    
+    // Basic query
+    let query = supabase
+      .from('resources')
+      .select('*, categories(name)')
+      .order('created_at', { ascending: false })
+      .limit(12);
+    
+    // Simple category filter
+    if (category && category !== 'Featured') {
+      try {
+        const { data: catData, error: catError } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', category)
+          .single();
+          
+        if (catError) {
+          console.error('Error finding category:', catError);
+        } else if (catData) {
+          query = query.eq('category_id', catData.id);
         }
-        
-        // Sort resources if sort parameter is provided
-        if (sort === 'rating') {
-            filteredResources.sort((a, b) => b.rating - a.rating);
-        } else if (sort === 'newest') {
-            // This is simplified; in a real app we'd use proper date objects
-            filteredResources.sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
-        }
-        
-        res.json(filteredResources);
-    } catch (error) {
-        console.error('Error fetching resources:', error);
-        res.status(500).json({ error: 'Failed to fetch resources' });
+      } catch (catErr) {
+        console.error('Error in category lookup:', catErr);
+        // Continue with unfiltered query if category lookup fails
+      }
     }
+    
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw new Error('Database query failed');
+    }
+    
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching resources:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch resources',
+      message: error.message || 'Unknown server error'
+    });
+  }
 });
 
 // User routes (simplified)
@@ -135,4 +128,12 @@ app.get('*', (req, res) => {
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    
+    // Start the cron job for resource scraping
+    if (process.env.NODE_ENV !== 'development' || process.env.RUN_CRON === 'true') {
+        console.log('Starting resource scraper cron job...');
+        require('./cron');
+    } else {
+        console.log('Resource scraper cron job not started in development mode. Set RUN_CRON=true to enable.');
+    }
 }); 

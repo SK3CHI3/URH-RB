@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "scrape": "node scraper.js"
+    "scrape": "node scraper.js",
+    "cron": "node cron.js"
   },
   "keywords": [
     "resources",
