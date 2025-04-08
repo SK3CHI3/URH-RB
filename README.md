@@ -1,27 +1,36 @@
 # Universal Resource Hub
 
-A platform for discovering free resources across various categories including technology, design, education, business, books, music, and more.
+A platform for discovering free resources across various categories including technology, design, education, business, and more. The platform automatically scrapes and aggregates resources from multiple trusted sources to provide up-to-date learning materials.
 
-## Features
+## ✨ Features
 
-- Browse resources by category
-- Search for specific resources
-- Filter and sort resources
-- Light/dark theme toggle
-- Mobile-responsive design
-- User authentication (planned)
-- User interest selection (planned)
-- Notification system (planned)
+- **Resource Discovery**
+  - Automated resource scraping from multiple sources
+  - Browse resources by category
+  - Real-time resource filtering
+  - Clean and intuitive interface
 
-## Tech Stack
+- **Smart Scraping**
+  - Scheduled resource updates every 15 minutes
+  - Intelligent duplicate detection
+  - Fallback scraping mechanisms
+  - Error handling and retry logic
+
+- **User Experience**
+  - Light/dark theme toggle
+  - Mobile-responsive design
+  - Loading states and error handling
+  - Fast and efficient resource loading
+
+## 🛠️ Tech Stack
 
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Node.js, Express
 - **Database:** Supabase
-- **Authentication:** Supabase Auth
-- **Email Notifications:** Nodemailer
+- **Scraping:** Custom scraper with Firecrawl API integration
+- **Deployment:** Render/Vercel
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -33,8 +42,8 @@ A platform for discovering free resources across various categories including te
 
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/universal-resource-hub.git
-   cd universal-resource-hub
+   git clone https://github.com/SK3CHI3/URH-RB.git
+   cd URH-RB
    ```
 
 2. Install dependencies
@@ -52,43 +61,41 @@ A platform for discovering free resources across various categories including te
      NODE_ENV=development
      ```
 
-4. Start the development server
+4. Start the server
    ```
-   npm run dev
+   npm start
    ```
 
 5. Open your browser and navigate to `http://localhost:3000`
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-universal-resource-hub/
+URH-RB/
 ├── public/
 │   ├── css/
-│   │   └── styles.css
+│   │   ├── styles.css
+│   │   └── dark-theme.css
 │   ├── js/
-│   │   └── main.js
+│   │   ├── main.js
+│   │   ├── resources.js
+│   │   ├── config.js
+│   │   └── auth.js
 │   └── images/
+├── server/
+│   └── scrapers/
 ├── server.js
 ├── package.json
 ├── .env
 └── README.md
 ```
 
-## Database Schema (Planned)
-
-- **Users**
-  - id (primary key)
-  - email
-  - password (hashed)
-  - name
-  - created_at
-  - updated_at
+## 💾 Database Schema
 
 - **Categories**
   - id (primary key)
   - name
-  - icon
+  - slug
   - description
   - created_at
 
@@ -98,18 +105,29 @@ universal-resource-hub/
   - description
   - url
   - image_url
-  - rating
   - source
   - category_id (foreign key)
   - created_at
   - updated_at
 
-- **UserInterests**
-  - id (primary key)
-  - user_id (foreign key)
-  - category_id (foreign key)
-  - created_at
+## 🔄 Resource Sources
 
-## License
+Currently scraping from:
+- GeeksGod
+- UdemyFreebies
+- UdemyKing
+- freeCodeCamp
+- Smashing Magazine
+- Entrepreneur
 
-MIT 
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and updates.
+
+## 📄 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. 
