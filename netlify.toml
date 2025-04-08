@@ -1,15 +1,27 @@
 [build]
   functions = "netlify/functions"
   publish = "."
+  command = "npm install"
 
 [functions]
   external_node_modules = ["@supabase/supabase-js"]
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/public/*"
+  to = "/public/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Pragma = "no-cache"
 
 [dev]
   functions = "netlify/functions"
