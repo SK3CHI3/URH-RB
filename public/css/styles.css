@@ -560,17 +560,23 @@ nav a:hover, nav a.active {
     position: absolute;
     top: 1rem;
     left: 1rem;
-    background: rgba(37, 99, 235, 0.9);
+    background: rgba(37, 99, 235, 0.4);
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     backdrop-filter: blur(4px);
     z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.featured-badge i {
+    color: rgba(251, 191, 36, 0.9);
+    font-size: 0.8rem;
 }
 
 .resource-footer {
