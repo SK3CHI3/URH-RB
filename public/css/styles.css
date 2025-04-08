@@ -536,17 +536,89 @@ nav a:hover, nav a.active {
 }
 
 .resource-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
 }
 
 .tag {
-    background: var(--tag-bg);
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.8rem;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.resource-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.post-date {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.post-date i {
+    color: var(--accent-color);
+}
+
+.resource-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.access-btn {
+    background: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    min-width: 140px;
+}
+
+.access-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(to right, var(--accent-color), #2563eb);
 }
 
 /* Footer */
@@ -1152,9 +1224,7 @@ input:focus, textarea:focus, select:focus {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background: var(--card-bg);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
 }
 
 .resource-info {
@@ -1176,7 +1246,6 @@ input:focus, textarea:focus, select:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0;
 }
 
 .post-date i {
@@ -1184,7 +1253,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .save-btn {
-    background: var(--card-bg);
+    background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
     width: 36px;

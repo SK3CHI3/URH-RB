@@ -86,6 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="featured-badge">
               <i class="fas fa-star"></i> New
             </div>
+            <div class="resource-tags">
+              <span class="tag">${categoryName}</span>
+            </div>
           </div>
           <div class="resource-content">
             <h3>${title}</h3>
@@ -98,9 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="source">
                 <p>Source: ${source}</p>
               </div>
-            </div>
-            <div class="resource-tags">
-              <span class="tag featured">${categoryName}</span>
             </div>
           </div>
           <div class="resource-footer">
