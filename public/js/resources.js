@@ -4,6 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const resourcesGrid = document.querySelector('.resources-grid');
   const filterButtons = document.querySelectorAll('.filter-btn');
   
+  // Category name to ID mapping
+  const categoryMap = {
+    'Technology': 1,
+    'Design': 4,
+    'Business': 5,
+    'Education': 6,
+    'Books': 7,
+    'Blogs & News': 8
+  };
+  
   // Exit if the resources grid isn't found
   if (!resourcesGrid) {
     console.error('Resources grid not found in the document');
@@ -17,13 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
       resourcesGrid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading resources...</div>';
       
       // Query resources from Supabase
-      let query = window.supabase
+      let query = window.supabaseClient
         .from('resources')
         .select('*, categories(name)');
       
       // Add category filter if specified
       if (category && category !== 'Featured') {
-        query = query.eq('category_id', category);
+        const categoryId = categoryMap[category];
+        if (!categoryId) {
+          throw new Error(`Unknown category: ${category}`);
+        }
+        query = query.eq('category_id', categoryId);
       }
       
       // Execute query
