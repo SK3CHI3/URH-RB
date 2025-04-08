@@ -468,6 +468,8 @@ nav a:hover, nav a.active {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 500px;
+    position: relative;
 }
 
 .resource-card:hover {
@@ -1142,12 +1144,17 @@ input:focus, textarea:focus, select:focus {
 }
 
 .resource-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: auto;
-    padding-top: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
 }
 
 .resource-info {
@@ -1160,7 +1167,6 @@ input:focus, textarea:focus, select:focus {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
     justify-content: flex-end;
 }
 
@@ -1223,7 +1229,6 @@ input:focus, textarea:focus, select:focus {
     .resource-actions {
         flex-direction: row;
         width: 100%;
-        margin-top: 1rem;
     }
     
     .access-btn {
