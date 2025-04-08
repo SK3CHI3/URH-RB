@@ -72,6 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const source = resource.source || 'Unknown Source';
         const categoryName = resource.categories?.name || 'Resource';
         
+        // Format the date
+        const createdAt = resource.created_at ? new Date(resource.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }) : 'Recently added';
+        
         // Build card HTML
         card.innerHTML = `
           <div class="resource-image">
@@ -96,15 +103,51 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="tag featured">${categoryName}</span>
             </div>
           </div>
+          <div class="resource-footer">
+            <div class="post-date">
+              <i class="far fa-calendar-alt"></i> ${createdAt}
+            </div>
+            <div class="resource-actions">
+              <button class="save-btn" title="Save for later">
+                <i class="far fa-bookmark"></i>
+              </button>
+              <button class="access-btn" data-url="${url}">
+                <i class="fas fa-external-link-alt"></i> Access Resource
+              </button>
+            </div>
+          </div>
         `;
         
-        // Make card clickable
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.tag')) return;
-          if (url && url !== '#') {
-            window.open(url, '_blank', 'noopener,noreferrer');
-          }
-        });
+        // Update click handler to only work with the Access button
+        card.removeEventListener('click', () => {});
+        const accessBtn = card.querySelector('.access-btn');
+        if (accessBtn) {
+          accessBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = accessBtn.dataset.url;
+            if (url && url !== '#') {
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }
+          });
+        }
+
+        // Add save button functionality
+        const saveBtn = card.querySelector('.save-btn');
+        if (saveBtn) {
+          saveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const icon = saveBtn.querySelector('i');
+            if (icon.classList.contains('far')) {
+              icon.classList.remove('far');
+              icon.classList.add('fas');
+              saveBtn.title = 'Saved';
+            } else {
+              icon.classList.remove('fas');
+              icon.classList.add('far');
+              saveBtn.title = 'Save for later';
+            }
+          });
+        }
         
         resourcesGrid.appendChild(card);
       });
