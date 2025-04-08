@@ -965,16 +965,18 @@ input:focus, textarea:focus, select:focus {
     border-radius: 8px;
     color: white;
     font-weight: 500;
-    animation: slideIn 0.3s ease;
     z-index: 1000;
-}
-
-.notification.success {
-    background: #10B981;
+    animation: slideIn 0.3s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .notification.error {
-    background: #EF4444;
+    background: rgba(239, 68, 68, 0.95);
+}
+
+.notification.success {
+    background: rgba(16, 185, 129, 0.95);
 }
 
 @keyframes slideIn {
@@ -985,6 +987,17 @@ input:focus, textarea:focus, select:focus {
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
     }
 }
 

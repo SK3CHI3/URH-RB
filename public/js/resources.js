@@ -125,10 +125,67 @@ document.addEventListener('DOMContentLoaded', () => {
         const accessBtn = card.querySelector('.access-btn');
         if (accessBtn) {
           accessBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
+            
             const url = accessBtn.dataset.url;
-            if (url && url !== '#') {
-              window.open(url, '_blank', 'noopener,noreferrer');
+            if (!url || url === '#') {
+              // Show error message if URL is invalid
+              const errorToast = document.createElement('div');
+              errorToast.className = 'notification error';
+              errorToast.textContent = 'Resource URL is not available';
+              document.body.appendChild(errorToast);
+              
+              // Remove error message after 3 seconds
+              setTimeout(() => {
+                errorToast.remove();
+              }, 3000);
+              return;
+            }
+
+            try {
+              // Validate URL
+              new URL(url);
+              
+              // Show loading state
+              const icon = accessBtn.querySelector('i');
+              const originalText = accessBtn.innerHTML;
+              accessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+              accessBtn.style.opacity = '0.7';
+              
+              // Open URL in new tab
+              const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+              
+              // Handle popup blockers
+              if (newWindow === null) {
+                throw new Error('Popup was blocked');
+              }
+              
+              // Reset button after a short delay
+              setTimeout(() => {
+                accessBtn.innerHTML = originalText;
+                accessBtn.style.opacity = '1';
+              }, 1000);
+              
+            } catch (error) {
+              console.error('Error opening resource:', error);
+              
+              // Show error message
+              const errorToast = document.createElement('div');
+              errorToast.className = 'notification error';
+              errorToast.textContent = error.message === 'Popup was blocked' 
+                ? 'Please allow popups to access resources'
+                : 'Invalid resource URL';
+              document.body.appendChild(errorToast);
+              
+              // Remove error message after 3 seconds
+              setTimeout(() => {
+                errorToast.remove();
+              }, 3000);
+              
+              // Reset button immediately
+              accessBtn.innerHTML = originalText;
+              accessBtn.style.opacity = '1';
             }
           });
         }
