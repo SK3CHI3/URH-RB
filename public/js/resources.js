@@ -95,8 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>${description}</p>
             <div class="resource-meta">
               <div class="rating">
-                <i class="fas fa-star"></i>
+                <i class="fas fa-star" style="color: #fbbf24;"></i>
                 <span>${rating}</span>
+                <span class="views">50K+ views</span>
               </div>
               <div class="source">
                 <p>Source: ${source}</p>
@@ -105,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="resource-footer">
             <div class="post-date">
-              <i class="far fa-calendar-alt"></i> ${createdAt}
+              <i class="far fa-calendar-alt" style="color: var(--accent-color);"></i>
+              <span>${createdAt}</span>
             </div>
             <div class="resource-actions">
               <button class="save-btn" title="Save for later">
