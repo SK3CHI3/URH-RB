@@ -7,8 +7,6 @@
     <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg">
     <link rel="stylesheet" href="public/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="public/js/auth.js"></script>
 </head>
 <body>
     <header>
@@ -267,8 +265,13 @@
         </div>
     </footer>
 
+    <!-- Load Supabase first -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Then load our config that initializes Supabase -->
     <script src="public/js/config.js"></script>
+    
+    <!-- Then load our app scripts -->
     <script src="public/js/resources.js"></script>
     <script src="public/js/main.js"></script>
     <script src="public/js/auth.js"></script>
