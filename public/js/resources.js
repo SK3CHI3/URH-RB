@@ -675,8 +675,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log(`Rendering ${resources.length} resources`);
     
+    // Sort resources by date - newest first
+    const sortedResources = [...resources].sort((a, b) => {
+      const dateA = new Date(a.created_at || 0);
+      const dateB = new Date(b.created_at || 0);
+      return dateB - dateA; // Descending order (newest first)
+    });
+    
+    console.log('Resources sorted by date, newest first');
+    
     // Build resource cards
-    resources.forEach((resource, index) => {
+    sortedResources.forEach((resource, index) => {
       try {
         // Create card element
         const card = document.createElement('div');
