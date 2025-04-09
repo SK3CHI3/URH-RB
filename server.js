@@ -381,11 +381,14 @@ app.get('/api/user/:user_id/saved-resources', async (req, res) => {
   try {
     const { user_id } = req.params;
     
+    console.log('Fetching saved resources for user:', user_id);
+    
     if (!user_id) {
       return res.status(400).json({ error: 'Missing required parameter: user_id' });
     }
     
     // Get saved resources with full resource details
+    console.log('Running Supabase query for saved resources');
     const { data, error } = await supabase
       .from('saved_resources')
       .select(`
@@ -407,16 +410,27 @@ app.get('/api/user/:user_id/saved-resources', async (req, res) => {
       .order('saved_at', { ascending: false });
       
     if (error) {
+      console.error('Supabase error fetching saved resources:', error);
       throw new Error(`Error fetching saved resources: ${error.message}`);
     }
     
-    // Format the response to make it more usable
-    const formattedData = data.map(item => ({
-      id: item.id,
-      saved_at: item.saved_at,
-      ...item.resources,
-    }));
+    console.log('Saved resources raw data:', JSON.stringify(data));
     
+    // Format the response to make it more usable
+    const formattedData = data.map(item => {
+      console.log('Processing item:', JSON.stringify(item));
+      if (!item.resources) {
+        console.warn(`Item ID ${item.id} has no associated resource data`);
+      }
+      return {
+        id: item.id,
+        saved_id: item.id, // Add saved_id for unsave functionality
+        saved_at: item.saved_at,
+        ...(item.resources || {}),
+      };
+    });
+    
+    console.log(`Returning ${formattedData.length} formatted resources`);
     res.json(formattedData);
     
   } catch (error) {

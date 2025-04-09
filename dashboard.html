@@ -211,13 +211,20 @@
                     if (targetSection) {
                         targetSection.classList.add('active');
                         
-                        // If saved resources tab is clicked, load saved resources
+                        // If saved resources tab is clicked, always load saved resources
                         if (tab.dataset.tab === 'saved-resources') {
+                            console.log('Saved resources tab clicked - loading resources');
                             loadSavedResources();
                         }
                     }
                 });
             });
+            
+            // Manually trigger click on the initial active tab (Overview by default)
+            const initialActiveTab = document.querySelector('.dashboard-menu a.active');
+            if (initialActiveTab) {
+                console.log('Initial tab is:', initialActiveTab.dataset.tab);
+            }
         }
         
         // Load saved resources
@@ -228,10 +235,12 @@
             const gridElement = document.getElementById('saved-resources-grid');
             
             try {
+                console.log('Loading saved resources for user:', user.id);
                 gridElement.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i><p>Loading your saved resources...</p></div>';
                 
                 // Fetch saved resources from API
                 const baseUrl = window.appConfig?.apiUrl || '';
+                console.log('Fetching from URL:', `${baseUrl}/api/user/${user.id}/saved-resources`);
                 const response = await fetch(`${baseUrl}/api/user/${user.id}/saved-resources`);
                 
                 if (!response.ok) {
@@ -239,12 +248,14 @@
                 }
                 
                 const savedResources = await response.json();
+                console.log('Saved resources data:', savedResources);
                 
                 // Update count in stats
                 document.getElementById('saved-resources-count').textContent = savedResources.length;
                 
                 // Display saved resources
                 if (savedResources.length === 0) {
+                    console.log('No saved resources found');
                     gridElement.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-bookmark" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
@@ -336,8 +347,12 @@
             const gridElement = document.getElementById('saved-resources-grid');
             gridElement.innerHTML = '';
             
+            console.log('Rendering saved resources:', resources);
+            
             resources.forEach(resource => {
                 try {
+                    console.log('Processing resource:', resource);
+                    
                     // Create card element
                     const card = document.createElement('div');
                     card.className = 'resource-card';
@@ -350,6 +365,13 @@
                     const rating = resource.rating || '4.5';
                     const source = resource.source || 'Unknown Source';
                     const categoryName = resource.categories?.name || 'Resource';
+                    
+                    // Important: Get the correct IDs
+                    const savedId = resource.saved_id || resource.id;
+                    const resourceId = resource.resource_id || resource.id;
+                    
+                    // Log IDs for debugging
+                    console.log(`Resource: ${title}, saved_id: ${savedId}, resource_id: ${resourceId}`);
                     
                     // Format the date
                     const savedAt = resource.saved_at ? new Date(resource.saved_at).toLocaleDateString('en-US', {
@@ -385,7 +407,7 @@
                                 <span>Saved: ${savedAt}</span>
                             </div>
                             <div class="resource-actions">
-                                <button class="unsave-btn" title="Remove from saved" data-resource-id="${resource.id}" data-saved-id="${resource.saved_id}">
+                                <button class="unsave-btn" title="Remove from saved" data-resource-id="${resourceId}" data-saved-id="${savedId}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                                 <button class="access-btn" data-url="${url}">
@@ -417,6 +439,7 @@
                                 if (!user) return;
                                 
                                 const resourceId = unsaveBtn.dataset.resourceId;
+                                console.log('Unsaving resource ID:', resourceId, 'with saved ID:', unsaveBtn.dataset.savedId);
                                 
                                 // Show loading state
                                 unsaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -424,11 +447,16 @@
                                 
                                 // Unsave the resource
                                 const baseUrl = window.appConfig?.apiUrl || '';
+                                console.log('DELETE request to:', `${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`);
                                 const response = await fetch(`${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`, {
                                     method: 'DELETE',
                                 });
                                 
+                                console.log('Unsave response status:', response.status);
+                                
                                 if (!response.ok) {
+                                    const errorData = await response.json();
+                                    console.error('Error unsaving resource:', errorData);
                                     throw new Error('Failed to remove resource from saved items');
                                 }
                                 
@@ -519,77 +547,94 @@
 
         // Check if user is authenticated
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = await getCurrentUser();
-            if (!user) {
-                window.location.href = '/login.html?redirect=dashboard.html';
-                return;
-            }
-
-            // Update user profile
-            document.getElementById('user-name').textContent = user.user_metadata?.full_name || 'User';
-            document.getElementById('user-email').textContent = user.email;
-            
-            // Set up tab navigation
-            setupTabs();
-
-            // Load user statistics
             try {
-                const { data: stats, error } = await supabase
-                    .from('user_statistics')
-                    .select('saved_resources, categories_followed, resources_viewed')
-                    .eq('user_id', user.id)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') throw error;
-
-                if (stats) {
-                    document.getElementById('saved-resources-count').textContent = stats.saved_resources;
-                    document.getElementById('categories-followed-count').textContent = stats.categories_followed;
-                    document.getElementById('resources-viewed-count').textContent = stats.resources_viewed;
+                console.log('Dashboard loaded - checking authentication');
+                const user = await getCurrentUser();
+                
+                if (!user) {
+                    console.warn('No authenticated user found, redirecting to login');
+                    window.location.href = '/login.html?redirect=dashboard.html';
+                    return;
                 }
-            } catch (error) {
-                console.error('Error loading statistics:', error);
-            }
+                
+                console.log('User authenticated:', user.id);
 
-            // Load recent activities
-            try {
-                const { data: activities, error } = await supabase
-                    .from('user_activities')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+                // Update user profile
+                document.getElementById('user-name').textContent = user.user_metadata?.full_name || 'User';
+                document.getElementById('user-email').textContent = user.email;
+                
+                // Set up tab navigation first
+                console.log('Setting up dashboard tabs');
+                setupTabs();
+                
+                // Manually check if the saved-resources tab is active
+                const savedTab = document.getElementById('saved-tab');
+                if (savedTab && savedTab.classList.contains('active')) {
+                    console.log('Saved resources tab is active on load');
+                    loadSavedResources();
+                }
 
-                if (error) throw error;
+                // Load user statistics
+                try {
+                    const { data: stats, error } = await supabase
+                        .from('user_statistics')
+                        .select('saved_resources, categories_followed, resources_viewed')
+                        .eq('user_id', user.id)
+                        .single();
 
-                const activityList = document.getElementById('activity-list');
-                activityList.innerHTML = '';
+                    if (error && error.code !== 'PGRST116') throw error;
 
-                if (activities && activities.length > 0) {
-                    activities.forEach(activity => {
-                        activityList.innerHTML += `
+                    if (stats) {
+                        document.getElementById('saved-resources-count').textContent = stats.saved_resources;
+                        document.getElementById('categories-followed-count').textContent = stats.categories_followed;
+                        document.getElementById('resources-viewed-count').textContent = stats.resources_viewed;
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                }
+
+                // Load recent activities
+                try {
+                    const { data: activities, error } = await supabase
+                        .from('user_activities')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (error) throw error;
+
+                    const activityList = document.getElementById('activity-list');
+                    activityList.innerHTML = '';
+
+                    if (activities && activities.length > 0) {
+                        activities.forEach(activity => {
+                            activityList.innerHTML += `
+                                <div class="activity-item">
+                                    <i class="fas ${getActivityIcon(activity.type)}"></i>
+                                    <div>
+                                        <h4>${activity.title}</h4>
+                                        <p>${activity.description} - ${formatDate(activity.created_at)}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        activityList.innerHTML = `
                             <div class="activity-item">
-                                <i class="fas ${getActivityIcon(activity.type)}"></i>
+                                <i class="fas fa-info-circle"></i>
                                 <div>
-                                    <h4>${activity.title}</h4>
-                                    <p>${activity.description} - ${formatDate(activity.created_at)}</p>
+                                    <h4>No recent activity</h4>
+                                    <p>Start exploring resources to see your activity here!</p>
                                 </div>
                             </div>
                         `;
-                    });
-                } else {
-                    activityList.innerHTML = `
-                        <div class="activity-item">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <h4>No recent activity</h4>
-                                <p>Start exploring resources to see your activity here!</p>
-                            </div>
-                        </div>
-                    `;
+                    }
+                } catch (error) {
+                    console.error('Error loading activities:', error);
                 }
             } catch (error) {
-                console.error('Error loading activities:', error);
+                console.error('Error checking authentication:', error);
             }
         });
 
