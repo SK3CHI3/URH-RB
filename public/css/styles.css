@@ -635,6 +635,9 @@ nav a:hover, nav a.active {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     white-space: nowrap;
     min-width: 140px;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 10;
 }
 
 .access-btn:hover {
@@ -1316,6 +1319,9 @@ input:focus, textarea:focus, select:focus {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     white-space: nowrap;
     min-width: 140px;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 10;
 }
 
 .access-btn:hover {
@@ -1338,4 +1344,103 @@ input:focus, textarea:focus, select:focus {
     .access-btn {
         flex: 1;
     }
+}
+
+/* Notification System */
+@keyframes slideIn {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  z-index: 1000;
+  max-width: 350px;
+  min-width: 250px;
+}
+
+.notification.error {
+  background-color: #ef4444;
+  color: white;
+  border-left: 4px solid #b91c1c;
+}
+
+.notification.success {
+  background-color: #10b981;
+  color: white;
+  border-left: 4px solid #047857;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification i {
+  font-size: 1.2rem;
+}
+
+.notification span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 12px;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.close-btn:hover {
+  color: white;
+}
+
+.retry-btn {
+  margin-left: 12px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: white;
+  color: #ef4444;
+  border: none;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #f9fafb;
+}
+
+/* Access button enhancements */
+.access-btn {
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.access-btn:hover {
+  transform: translateY(-2px);
+}
+
+.access-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
