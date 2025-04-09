@@ -76,7 +76,7 @@ INSERT INTO categories (name, icon, description) VALUES
 ('Design', 'fa-paint-brush', 'UI kits, design templates, and creative assets'),
 ('Business', 'fa-briefcase', 'Business templates, guides, and entrepreneurship resources'),
 ('Education', 'fa-graduation-cap', 'Online courses, tutorials, and learning materials'),
-('Books', 'fa-book', 'Free ebooks, digital publications, and reading materials'),
+('Events', 'fa-calendar-alt', 'Tech events, hackathons, and conferences from different regions'),
 ('Music', 'fa-music', 'Music theory, instruments, and audio resources');
 
 -- Row Level Security Policies

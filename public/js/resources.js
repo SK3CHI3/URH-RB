@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Design': 4,
         'Business': 5,
         'Education': 6,
-        'Books': 7,
+        'Events': 7,
         'Blogs & News': 8
       };
 

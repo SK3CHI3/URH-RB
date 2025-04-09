@@ -55,7 +55,7 @@ app.get('/api/categories', async (req, res) => {
             { id: 2, name: 'Design', icon: 'fa-paint-brush', description: 'UI kits, design templates, and creative assets' },
             { id: 3, name: 'Business', icon: 'fa-briefcase', description: 'Business templates, guides, and entrepreneurship resources' },
             { id: 4, name: 'Education', icon: 'fa-graduation-cap', description: 'Online courses, tutorials, and learning materials' },
-            { id: 5, name: 'Books', icon: 'fa-book', description: 'Free ebooks, digital publications, and reading materials' },
+            { id: 5, name: 'Events', icon: 'fa-calendar-alt', description: 'Tech events, hackathons, and conferences from different regions' },
             { id: 6, name: 'Music', icon: 'fa-music', description: 'Music theory, instruments, and audio resources' }
         ];
         
