@@ -1,10 +1,21 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Check for required environment variables
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+  console.error('Missing required environment variables: SUPABASE_URL and/or SUPABASE_KEY');
+}
+
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+let supabase;
+try {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
+  );
+  console.log('Supabase client initialized successfully');
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
+}
 
 exports.handler = async (event, context) => {
   // Enable CORS
@@ -24,6 +35,11 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Check if Supabase client is properly initialized
+    if (!supabase) {
+      throw new Error('Supabase client not initialized. Check environment variables.');
+    }
+
     const params = event.queryStringParameters || {};
     const path = event.path;
     const httpMethod = event.httpMethod;
