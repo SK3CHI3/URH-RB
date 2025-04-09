@@ -77,7 +77,7 @@ INSERT INTO categories (name, icon, description) VALUES
 ('Business', 'fa-briefcase', 'Business templates, guides, and entrepreneurship resources'),
 ('Education', 'fa-graduation-cap', 'Online courses, tutorials, and learning materials'),
 ('Events', 'fa-calendar-alt', 'Tech events, hackathons, and conferences from different regions'),
-('Music', 'fa-music', 'Music theory, instruments, and audio resources');
+('Blogs & News', 'fa-newspaper', 'Latest tech news, industry insights, and expert blogs');
 
 -- Row Level Security Policies
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;

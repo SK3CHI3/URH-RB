@@ -56,7 +56,7 @@ app.get('/api/categories', async (req, res) => {
             { id: 3, name: 'Business', icon: 'fa-briefcase', description: 'Business templates, guides, and entrepreneurship resources' },
             { id: 4, name: 'Education', icon: 'fa-graduation-cap', description: 'Online courses, tutorials, and learning materials' },
             { id: 5, name: 'Events', icon: 'fa-calendar-alt', description: 'Tech events, hackathons, and conferences from different regions' },
-            { id: 6, name: 'Music', icon: 'fa-music', description: 'Music theory, instruments, and audio resources' }
+            { id: 6, name: 'Blogs & News', icon: 'fa-newspaper', description: 'Latest tech news, industry insights, and expert blogs' }
         ];
         
         res.json(categories);
