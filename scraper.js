@@ -268,6 +268,25 @@ async function updateResourceCounts() {
   try {
     logWithTime('Updating resource counts by category');
     
+    // First, try to use the server's updateResourceCountCache function if available
+    try {
+      // Check if running in same process as the server
+      if (global.app && typeof global.app.updateResourceCountCache === 'function') {
+        logWithTime('Using server\'s updateResourceCountCache function');
+        const categoryCounts = await global.app.updateResourceCountCache();
+        
+        if (categoryCounts) {
+          logWithTime('Resource counts updated via server cache');
+          return categoryCounts;
+        }
+      }
+    } catch (err) {
+      logWithTime(`Failed to use server's cache function: ${err.message}`);
+    }
+    
+    // Fallback: Update counts directly
+    logWithTime('Updating counts directly via database query');
+    
     // Get the current resource counts directly from the database
     const { data, error } = await supabase
       .from('resources')
@@ -287,6 +306,23 @@ async function updateResourceCounts() {
         categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
       }
     });
+    
+    // Try to update the cache file directly as a last resort
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const cacheFilePath = path.join(__dirname, 'resource-counts-cache.json');
+      
+      const cacheData = {
+        counts: categoryCounts,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      fs.writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2));
+      logWithTime('Resource count cache file updated directly');
+    } catch (fsErr) {
+      logWithTime(`Warning: Could not update cache file: ${fsErr.message}`);
+    }
     
     logWithTime('Updated resource counts:');
     Object.entries(categoryCounts).forEach(([category, count]) => {

@@ -14,6 +14,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
 
 // Initialize Express app
 const app = express();
@@ -44,6 +45,65 @@ app.use(cors(corsOptions));
 // Serve static files from root directory
 app.use(express.static(__dirname));
 
+// Cache for resource counts
+let resourceCountCache = null;
+const CACHE_FILE_PATH = path.join(__dirname, 'resource-counts-cache.json');
+
+// Initialize resource count cache from file or create it
+try {
+  if (fs.existsSync(CACHE_FILE_PATH)) {
+    const cacheData = fs.readFileSync(CACHE_FILE_PATH, 'utf8');
+    resourceCountCache = JSON.parse(cacheData);
+    console.log('Resource count cache loaded from file');
+  } else {
+    console.log('No resource count cache file found, will create one');
+  }
+} catch (error) {
+  console.error('Error loading resource count cache:', error);
+}
+
+// Function to update the resource count cache
+async function updateResourceCountCache() {
+  try {
+    console.log('Updating resource count cache...');
+    
+    // Query to get counts by category
+    const { data, error } = await supabase
+      .from('resources')
+      .select('category_id, categories(name)')
+      .not('category_id', 'is', null);
+      
+    if (error) {
+      console.error('Error fetching resource counts:', error);
+      return null;
+    }
+    
+    // Count resources per category
+    const categoryCounts = {};
+    data.forEach(resource => {
+      const categoryName = resource.categories?.name;
+      if (categoryName) {
+        categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+      }
+    });
+    
+    // Update the cache in memory
+    resourceCountCache = {
+      counts: categoryCounts,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Write to cache file
+    fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify(resourceCountCache, null, 2));
+    
+    console.log('Resource count cache updated:', categoryCounts);
+    return categoryCounts;
+  } catch (error) {
+    console.error('Error updating resource count cache:', error);
+    return null;
+  }
+}
+
 // API Routes
 
 // Get categories
@@ -69,31 +129,26 @@ app.get('/api/categories', async (req, res) => {
 // Get resource counts by category
 app.get('/api/resources/counts', async (req, res) => {
   try {
-    console.log('Fetching resource counts by category');
+    console.log('Received request for resource counts');
     
-    // Query to get counts by category
-    const { data, error } = await supabase
-      .from('resources')
-      .select('category_id, categories(name)')
-      .not('category_id', 'is', null);
+    // Check if cache is older than 5 minutes
+    const useCachedData = resourceCountCache && 
+      new Date() - new Date(resourceCountCache.lastUpdated) < 5 * 60 * 1000;
       
-    if (error) {
-      console.error('Error fetching resource counts:', error);
-      throw new Error(`Database query failed: ${error.message}`);
+    if (useCachedData) {
+      console.log('Using cached resource counts from', resourceCountCache.lastUpdated);
+      return res.json(resourceCountCache.counts);
     }
     
-    // Count resources per category
-    const categoryCounts = {};
-    data.forEach(resource => {
-      const categoryName = resource.categories?.name;
-      if (categoryName) {
-        categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
-      }
-    });
+    // If cache doesn't exist or is expired, update it
+    console.log('Cache missing or expired, fetching fresh counts');
+    const counts = await updateResourceCountCache();
     
-    console.log('Resource counts by category:', categoryCounts);
-    res.json(categoryCounts);
-    
+    if (counts) {
+      res.json(counts);
+    } else {
+      throw new Error('Failed to update resource counts');
+    }
   } catch (error) {
     console.error('Error getting resource counts:', error);
     res.status(500).json({ 
@@ -567,4 +622,7 @@ app.listen(PORT, () => {
     } else {
         console.log('Resource scraper cron job not started in development mode. Set RUN_CRON=true to enable.');
     }
-}); 
+});
+
+// Export the update function for use by the scraper
+app.updateResourceCountCache = updateResourceCountCache; 
