@@ -279,8 +279,6 @@
     <!-- Add category filter script -->
     <script>
         function filterByCategory(category) {
-            console.log('Filtering by category:', category);
-            
             // Find all filter buttons
             const filterButtons = document.querySelectorAll('.filter-btn');
             
@@ -292,27 +290,22 @@
                 }
             });
             
-            // If we found the button, update active state
+            // If we found the button, simulate a click on it
             if (targetButton) {
                 // Remove active class from all buttons
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 
                 // Add active class to the target button
                 targetButton.classList.add('active');
-            } else {
-                console.error('Category button not found:', category);
-            }
-            
-            // Always trigger resource loading with the category
-            if (typeof loadResources === 'function') {
-                if (category === 'Featured') {
-                    loadResources(null); // Featured is treated as null for the API
-                } else {
+                
+                // Trigger resource loading with the selected category
+                if (typeof loadResources === 'function') {
                     loadResources(category);
+                } else {
+                    console.error('loadResources function not available');
                 }
-                console.log('Called loadResources with:', category === 'Featured' ? 'null' : category);
             } else {
-                console.error('loadResources function not available');
+                console.error('Category button not found: ' + category);
             }
             
             // Smooth scroll to resources section
@@ -320,27 +313,6 @@
                 behavior: 'smooth' 
             });
         }
-        
-        // Add click event listeners to filter buttons for consistency
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            
-            // Remove any existing click listeners (prevent duplicates)
-            filterButtons.forEach(button => {
-                const clone = button.cloneNode(true);
-                button.parentNode.replaceChild(clone, button);
-            });
-            
-            // Add fresh click listeners
-            document.querySelectorAll('.filter-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const category = this.textContent.trim();
-                    console.log('Filter button clicked:', category);
-                    filterByCategory(category);
-                });
-            });
-        });
     </script>
 </body>
 </html> 

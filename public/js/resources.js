@@ -490,8 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load resources function with improved error handling
   async function loadResources(category = null) {
     try {
-      console.log('loadResources called with category:', category);
-      
       // Show loading indicator
       resourcesGrid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading resources...</div>';
       
@@ -504,9 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'Books': 7,
         'Blogs & News': 8
       };
-
-      console.log('Category map:', categoryMap);
-      console.log('Category value in map:', categoryMap[category]);
 
       // Set up request timeout
       const timeoutPromise = new Promise((_, reject) => {
@@ -526,14 +521,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add category filter if specified
         if (category && category !== 'Featured') {
           const categoryId = categoryMap[category];
-          console.log('Filtering by category ID:', categoryId, 'for category:', category);
           if (!categoryId) {
-            console.error(`Unknown category: "${category}". Available categories:`, Object.keys(categoryMap));
             throw new Error(`Unknown category: ${category}`);
           }
           query = query.eq('category_id', categoryId);
-        } else {
-          console.log('No category filter applied or using Featured');
         }
         
         // Execute query with timeout
