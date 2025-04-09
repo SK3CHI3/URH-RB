@@ -240,8 +240,21 @@
                 
                 // Fetch saved resources from API
                 const baseUrl = window.appConfig?.apiUrl || '';
-                console.log('Fetching from URL:', `${baseUrl}/api/user/${user.id}/saved-resources`);
-                const response = await fetch(`${baseUrl}/api/user/${user.id}/saved-resources`);
+                console.log('Using API URL:', baseUrl);
+                
+                let apiUrl;
+                if (baseUrl.includes('/.netlify/functions')) {
+                    // In production with Netlify Functions
+                    apiUrl = `${baseUrl}/saved-resources?user_id=${user.id}`;
+                    console.log('Using Netlify function path:', apiUrl);
+                } else {
+                    // In development with Express server
+                    apiUrl = `${baseUrl}/api/user/${user.id}/saved-resources`;
+                    console.log('Using Express server path:', apiUrl);
+                }
+                
+                console.log('Fetching saved resources from:', apiUrl);
+                const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -447,8 +460,20 @@
                                 
                                 // Unsave the resource
                                 const baseUrl = window.appConfig?.apiUrl || '';
-                                console.log('DELETE request to:', `${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`);
-                                const response = await fetch(`${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`, {
+                                
+                                let unsaveUrl;
+                                if (baseUrl.includes('/.netlify/functions')) {
+                                    // In production with Netlify Functions
+                                    unsaveUrl = `${baseUrl}/saved-resources?user_id=${user.id}&resource_id=${resourceId}`;
+                                    console.log('Using Netlify function for unsave:', unsaveUrl);
+                                } else {
+                                    // In development with Express server
+                                    unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`;
+                                    console.log('Using Express server for unsave:', unsaveUrl);
+                                }
+                                
+                                console.log('DELETE request to:', unsaveUrl);
+                                const response = await fetch(unsaveUrl, {
                                     method: 'DELETE',
                                 });
                                 

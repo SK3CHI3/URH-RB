@@ -33,50 +33,74 @@ exports.handler = async (event, context) => {
     console.log('Params:', params);
     
     // Check saved resources
-    if (httpMethod === 'GET' && params.resource_ids) {
-      const userId = path.split('/').filter(Boolean).pop();
-      const resourceIds = params.resource_ids.split(',').map(id => parseInt(id, 10));
-      
-      console.log('Checking saved resources for user:', userId);
-      console.log('Resource IDs:', resourceIds);
-      
-      if (!userId || !resourceIds.length) {
+    if (httpMethod === 'GET') {
+      // Case 1: Get saved resources for a user
+      if (params.user_id && !params.resource_ids) {
+        const userId = params.user_id;
+        console.log('Getting saved resources for user:', userId);
+        
+        // Join saved_resources with resources to get full resource details
+        const { data, error } = await supabase
+          .rpc('get_user_saved_resources', { user_id_param: userId });
+        
+        if (error) {
+          console.error('Supabase query error:', error);
+          throw new Error('Database query failed');
+        }
+        
         return {
-          statusCode: 400,
+          statusCode: 200,
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'Missing user ID or resource IDs' })
+          body: JSON.stringify(data || [])
         };
       }
       
-      // Query saved resources
-      const { data, error } = await supabase
-        .from('saved_resources')
-        .select('resource_id')
-        .eq('user_id', userId)
-        .in('resource_id', resourceIds);
+      // Case 2: Check which resources are saved by a user
+      if (params.resource_ids) {
+        const userId = path.split('/').filter(Boolean).pop() || params.user_id;
+        const resourceIds = params.resource_ids.split(',').map(id => parseInt(id, 10));
         
-      if (error) {
-        console.error('Supabase query error:', error);
-        throw new Error('Database query failed');
-      }
-      
-      // Convert to map format { '1': true, '2': true, ... }
-      const savedMap = {};
-      resourceIds.forEach(id => {
-        savedMap[id] = false;
-      });
-      
-      if (data && data.length > 0) {
-        data.forEach(item => {
-          savedMap[item.resource_id] = true;
+        console.log('Checking saved resources for user:', userId);
+        console.log('Resource IDs:', resourceIds);
+        
+        if (!userId || !resourceIds.length) {
+          return {
+            statusCode: 400,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ error: 'Missing user ID or resource IDs' })
+          };
+        }
+        
+        // Query saved resources
+        const { data, error } = await supabase
+          .from('saved_resources')
+          .select('resource_id')
+          .eq('user_id', userId)
+          .in('resource_id', resourceIds);
+          
+        if (error) {
+          console.error('Supabase query error:', error);
+          throw new Error('Database query failed');
+        }
+        
+        // Convert to map format { '1': true, '2': true, ... }
+        const savedMap = {};
+        resourceIds.forEach(id => {
+          savedMap[id] = false;
         });
+        
+        if (data && data.length > 0) {
+          data.forEach(item => {
+            savedMap[item.resource_id] = true;
+          });
+        }
+        
+        return {
+          statusCode: 200,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(savedMap)
+        };
       }
-      
-      return {
-        statusCode: 200,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(savedMap)
-      };
     }
     
     // Save a resource
