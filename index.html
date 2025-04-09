@@ -47,53 +47,53 @@
             <p>Browse through our curated collection of free resources across various categories</p>
             
             <div class="category-grid">
-                <div class="category-card">
+                <a href="#resources" class="category-card" onclick="filterByCategory('Technology')">
                     <div class="category-icon">
                         <i class="fas fa-code"></i>
                     </div>
                     <h3>Technology</h3>
                     <p>Programming tutorials, coding resources, and tech documentation</p>
-                </div>
-                <div class="category-card">
+                </a>
+                <a href="#resources" class="category-card" onclick="filterByCategory('Design')">
                     <div class="category-icon">
                         <i class="fas fa-paint-brush"></i>
                     </div>
                     <h3>Design</h3>
                     <p>UI kits, design templates, and creative assets</p>
-                </div>
-                <div class="category-card">
+                </a>
+                <a href="#resources" class="category-card" onclick="filterByCategory('Business')">
                     <div class="category-icon">
                         <i class="fas fa-briefcase"></i>
                     </div>
                     <h3>Business</h3>
                     <p>Business templates, guides, and entrepreneurship resources</p>
-                </div>
-                <div class="category-card">
+                </a>
+                <a href="#resources" class="category-card" onclick="filterByCategory('Education')">
                     <div class="category-icon">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <h3>Education</h3>
                     <p>Online courses, tutorials, and learning materials</p>
-                </div>
-                <div class="category-card">
+                </a>
+                <a href="#resources" class="category-card" onclick="filterByCategory('Books')">
                     <div class="category-icon">
                         <i class="fas fa-book"></i>
                     </div>
                     <h3>Books</h3>
                     <p>Free ebooks, digital publications, and reading materials</p>
-                </div>
-                <div class="category-card">
+                </a>
+                <a href="#resources" class="category-card" onclick="filterByCategory('Blogs & News')">
                     <div class="category-icon">
                         <i class="fas fa-newspaper"></i>
                     </div>
                     <h3>Blogs & News</h3>
                     <p>Latest tech news, industry insights, and expert blogs</p>
-                </div>
+                </a>
             </div>
         </section>
 
         <!-- Resources Section -->
-        <section class="resources">
+        <section class="resources" id="resources">
             <h2>Available Resources</h2>
             
             <div class="filter-container">
@@ -275,5 +275,44 @@
     <script src="public/js/resources.js?v=1.0.2"></script>
     <script src="public/js/main.js?v=1.0.2"></script>
     <script src="public/js/auth.js?v=1.0.2"></script>
+    
+    <!-- Add category filter script -->
+    <script>
+        function filterByCategory(category) {
+            // Find all filter buttons
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            // Find the button that matches the category
+            let targetButton = null;
+            filterButtons.forEach(button => {
+                if (button.textContent.trim() === category) {
+                    targetButton = button;
+                }
+            });
+            
+            // If we found the button, simulate a click on it
+            if (targetButton) {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to the target button
+                targetButton.classList.add('active');
+                
+                // Trigger resource loading with the selected category
+                if (typeof loadResources === 'function') {
+                    loadResources(category);
+                } else {
+                    console.error('loadResources function not available');
+                }
+            } else {
+                console.error('Category button not found: ' + category);
+            }
+            
+            // Smooth scroll to resources section
+            document.getElementById('resources').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+    </script>
 </body>
 </html> 
