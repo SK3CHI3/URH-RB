@@ -261,6 +261,47 @@ async function saveResourcesToDatabase(resources) {
 }
 
 /**
+ * Update resource counts by category in the database
+ * @returns {Promise<Object>} Updated category counts
+ */
+async function updateResourceCounts() {
+  try {
+    logWithTime('Updating resource counts by category');
+    
+    // Get the current resource counts directly from the database
+    const { data, error } = await supabase
+      .from('resources')
+      .select('category_id, categories(name)')
+      .not('category_id', 'is', null);
+      
+    if (error) {
+      logWithTime(`Error fetching resource counts: ${error.message}`);
+      return null;
+    }
+    
+    // Count resources per category
+    const categoryCounts = {};
+    data.forEach(resource => {
+      const categoryName = resource.categories?.name;
+      if (categoryName) {
+        categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+      }
+    });
+    
+    logWithTime('Updated resource counts:');
+    Object.entries(categoryCounts).forEach(([category, count]) => {
+      logWithTime(`  ${category}: ${count} resources`);
+    });
+    
+    return categoryCounts;
+  } catch (error) {
+    logWithTime(`Error updating resource counts: ${error.message}`);
+    console.error(error.stack);
+    return null;
+  }
+}
+
+/**
  * Run all scrapers and save results
  */
 async function runScrapers() {
@@ -296,6 +337,13 @@ async function runScrapers() {
   }
   
   logWithTime(`Scraping complete! Found ${totalResources} resources, saved ${totalSaved} new ones.`);
+  
+  // If any new resources were saved, update the counts
+  if (totalSaved > 0) {
+    logWithTime('New resources were saved, updating category counts');
+    await updateResourceCounts();
+  }
+  
   return { totalResources, totalSaved };
 }
 
