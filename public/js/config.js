@@ -10,12 +10,27 @@ const config = {
 
 // Helper to detect environment
 function detectEnvironment() {
+    // More detailed logging
+    console.log('Window location:', {
+        hostname: window.location.hostname,
+        port: window.location.port,
+        protocol: window.location.protocol,
+        href: window.location.href
+    });
+    
     // Check if running on localhost
     const isLocalhost = window.location.hostname.includes('localhost') || 
                          window.location.hostname.includes('127.0.0.1');
     
     // Check if port is 5500 (Live Server)
     const isLiveServer = window.location.port === '5500' || window.location.port === '5501';
+    
+    // Force detection logging
+    console.log('Environment detection:', {
+        isLocalhost,
+        isLiveServer,
+        hostname: window.location.hostname
+    });
     
     // If we're on localhost but using Live Server, we need to point to the Node.js server
     if (isLocalhost && isLiveServer) {
@@ -26,7 +41,7 @@ function detectEnvironment() {
         };
     }
     
-    // If we're in production
+    // If we're in production (not localhost)
     if (!isLocalhost) {
         console.log('Detected production environment');
         return {

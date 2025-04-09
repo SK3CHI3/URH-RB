@@ -1,0 +1,26 @@
+[33mcommit ad05682c7467eea30ffc70db9ce3731f1676beb5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: SK3CHIE <vomollo101@gmail.com>
+Date:   Wed Apr 9 10:35:40 2025 +0200
+
+    Fix environment detection and API URL handling for resources.js and config.js
+
+M	public/js/config.js
+M	public/js/resources.js
+M	server.js
+
+[33mcommit 90bdfa2f6b4fff0e5e930f186a91db1974ce38ef[m
+Author: SK3CHIE <vomollo101@gmail.com>
+Date:   Wed Apr 9 09:23:23 2025 +0200
+
+    Fix saved resources display on dashboard and improve error handling
+
+M	dashboard.html
+M	server.js
+
+[33mcommit 161b512008bc7c308fcdbb58b8afe35472ce9f04[m
+Author: SK3CHIE <vomollo101@gmail.com>
+Date:   Wed Apr 9 09:12:54 2025 +0200
+
+    Add enhanced debugging for save resource functionality and improved error handling
+
+M	public/js/resources.js
