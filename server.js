@@ -293,6 +293,8 @@ app.post('/api/user/saved-resources', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: user_id and resource_id' });
     }
     
+    console.log('Attempting to save resource:', { user_id, resource_id });
+    
     // Check if already saved
     const { data: existingSave, error: checkError } = await supabase
       .from('saved_resources')
@@ -302,11 +304,13 @@ app.post('/api/user/saved-resources', async (req, res) => {
       .single();
       
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is the "no rows returned" error code
+      console.error('Error checking existing save:', checkError);
       throw new Error(`Error checking existing save: ${checkError.message}`);
     }
     
     // If already saved, return success (idempotent operation)
     if (existingSave) {
+      console.log('Resource already saved:', existingSave);
       return res.json({ 
         success: true, 
         id: existingSave.id,
@@ -315,6 +319,7 @@ app.post('/api/user/saved-resources', async (req, res) => {
     }
     
     // Save the resource
+    console.log('Inserting new saved resource');
     const { data, error } = await supabase
       .from('saved_resources')
       .insert([
@@ -324,9 +329,11 @@ app.post('/api/user/saved-resources', async (req, res) => {
       .single();
       
     if (error) {
+      console.error('Error saving resource:', error);
       throw new Error(`Error saving resource: ${error.message}`);
     }
     
+    console.log('Resource saved successfully:', data);
     res.status(201).json({
       success: true,
       id: data.id,
@@ -351,6 +358,8 @@ app.delete('/api/user/saved-resources', async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters: user_id and resource_id' });
     }
     
+    console.log('Attempting to unsave resource:', { user_id, resource_id });
+    
     // Remove the saved resource
     const { error } = await supabase
       .from('saved_resources')
@@ -359,9 +368,11 @@ app.delete('/api/user/saved-resources', async (req, res) => {
       .eq('resource_id', resource_id);
       
     if (error) {
+      console.error('Error removing saved resource:', error);
       throw new Error(`Error removing saved resource: ${error.message}`);
     }
     
+    console.log('Resource unsaved successfully');
     res.json({
       success: true,
       message: 'Resource unsaved successfully'
@@ -457,7 +468,14 @@ app.get('/api/user/:user_id/saved-resources/check', async (req, res) => {
     }
     
     // Parse the resource_ids from the query string
-    const ids = resource_ids.split(',').map(id => parseInt(id.trim(), 10));
+    // Handle a mixed array of strings and numbers
+    const ids = resource_ids.split(',').map(id => {
+      // Try to convert to integer but keep as string if it fails
+      const parsed = parseInt(id.trim(), 10);
+      return isNaN(parsed) ? id.trim() : parsed;
+    });
+    
+    console.log('Checking saved status for resource IDs:', ids);
     
     // Get saved resources matching the provided IDs
     const { data, error } = await supabase
@@ -467,8 +485,11 @@ app.get('/api/user/:user_id/saved-resources/check', async (req, res) => {
       .in('resource_id', ids);
       
     if (error) {
+      console.error('Error checking saved resources:', error);
       throw new Error(`Error checking saved resources: ${error.message}`);
     }
+    
+    console.log('Saved resources check result:', data);
     
     // Create a map of resource_id -> isSaved
     const savedMap = {};
@@ -481,6 +502,7 @@ app.get('/api/user/:user_id/saved-resources/check', async (req, res) => {
       savedMap[item.resource_id] = true;
     });
     
+    console.log('Returning saved map:', savedMap);
     res.json(savedMap);
     
   } catch (error) {

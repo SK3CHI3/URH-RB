@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize - check if user is logged in
   async function initialize() {
     try {
-      console.log('Initializing resources.js - checking auth state');
+      console.log('Initializing resources.js - checking environment config');
+      console.log('Environment:', window.location.hostname.includes('localhost') ? 'Development' : 'Production');
+      console.log('API URL:', window.appConfig?.apiUrl || 'Not configured');
+      console.log('Supabase Client:', window.supabaseClient ? 'Available' : 'Not available');
       
       // Get current user if auth.js is loaded
       if (typeof getCurrentUser === 'function') {
@@ -45,6 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         console.warn('getCurrentUser function is not available - auth.js might not be loaded yet');
+        
+        // Try to load auth.js if not already loaded
+        if (!document.querySelector('script[src*="auth.js"]')) {
+          console.log('Attempting to load auth.js dynamically');
+          const script = document.createElement('script');
+          script.src = 'public/js/auth.js';
+          document.body.appendChild(script);
+          
+          // Wait for script to load
+          await new Promise(resolve => {
+            script.onload = resolve;
+            script.onerror = () => {
+              console.error('Failed to load auth.js');
+              resolve();
+            };
+          });
+        }
       }
       
       // Load resources
@@ -220,16 +240,20 @@ document.addEventListener('DOMContentLoaded', () => {
       icon.className = 'fas fa-spinner fa-spin';
       saveBtn.disabled = true;
       
+      // Ensure we have the correct base URL for the environment
+      const baseUrl = window.appConfig?.apiUrl || '';
+      
       if (!isSaved) {
         console.log('Saving resource...');
         // Save the resource
         try {
-          console.log('Making POST request to /api/user/saved-resources with data:', {
+          const saveUrl = `${baseUrl}/api/user/saved-resources`;
+          console.log('Making POST request to', saveUrl, 'with data:', {
             user_id: userId,
             resource_id: resourceId
           });
           
-          const response = await fetch('/api/user/saved-resources', {
+          const response = await fetch(saveUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -267,7 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Unsaving resource...');
         // Unsave the resource
         try {
-          const response = await fetch(`/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`, {
+          const unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
+          console.log('Making DELETE request to:', unsaveUrl);
+          
+          const response = await fetch(unsaveUrl, {
             method: 'DELETE',
           });
           
@@ -352,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Attach click handlers to each save button
     saveButtons.forEach((btn, index) => {
-      const resourceId = parseInt(btn.dataset.resourceId, 10);
+      const resourceId = btn.dataset.resourceId;
       console.log(`Setting up save button ${index+1} for resource ID: ${resourceId}`);
       
       if (!resourceId) {
@@ -418,7 +445,14 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Get list of saved resources from API
       const userId = currentUser.id;
-      const response = await fetch(`/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`);
+      
+      // Ensure we have the correct base URL for the environment
+      const baseUrl = window.appConfig?.apiUrl || '';
+      const apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`;
+      
+      console.log('Checking saved resources at URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       
       if (!response.ok) {
         throw new Error('Failed to check saved resources');
@@ -571,6 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Log URL for debugging
         console.log(`Resource ${index+1} "${title}" URL:`, url);
+        console.log(`Resource ${index+1} "${title}" ID:`, id);
         
         // Format the date
         const createdAt = resource.created_at ? new Date(resource.created_at).toLocaleDateString('en-US', {

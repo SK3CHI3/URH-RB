@@ -4,18 +4,56 @@ const config = {
         apiUrl: 'http://localhost:3000'
     },
     production: {
-        apiUrl: '' // Use relative path to work in any deployment
+        apiUrl: '' // Empty string for relative URLs in production
     }
 };
 
-// Determine environment based on hostname
-const isProduction = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+// Helper to detect environment
+function detectEnvironment() {
+    // Check if running on localhost
+    const isLocalhost = window.location.hostname.includes('localhost') || 
+                         window.location.hostname.includes('127.0.0.1');
+    
+    // Check if port is 5500 (Live Server)
+    const isLiveServer = window.location.port === '5500' || window.location.port === '5501';
+    
+    // If we're on localhost but using Live Server, we need to point to the Node.js server
+    if (isLocalhost && isLiveServer) {
+        console.log('Detected Live Server environment, using Node.js server at port 3000');
+        return {
+            environment: 'development',
+            apiUrl: 'http://localhost:3000'
+        };
+    }
+    
+    // If we're in production
+    if (!isLocalhost) {
+        console.log('Detected production environment');
+        return {
+            environment: 'production',
+            apiUrl: '' // Use relative URLs in production
+        };
+    }
+    
+    // Default is standard development
+    console.log('Detected standard development environment');
+    return {
+        environment: 'development',
+        apiUrl: config.development.apiUrl
+    };
+}
+
+// Get environment configuration
+const envConfig = detectEnvironment();
 
 // Export the configuration
-const currentConfig = isProduction ? config.production : config.development;
+const currentConfig = envConfig.environment === 'production' 
+    ? config.production 
+    : { apiUrl: envConfig.apiUrl };
 
 // Make config available globally
 window.appConfig = currentConfig;
+console.log('Using API URL:', window.appConfig.apiUrl);
 
 // Supabase Configuration
 const SUPABASE_URL = 'https://spkbhpmqxdbqwpwzyykc.supabase.co';
