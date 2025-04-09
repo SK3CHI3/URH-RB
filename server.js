@@ -161,17 +161,18 @@ app.get('/api/resources/counts', async (req, res) => {
 // Get resources
 app.get('/api/resources', async (req, res) => {
   try {
+    console.log('Fetching resources from database');
     const { category } = req.query;
     
-    // Basic query
+    // Start building the query
     let query = supabase
       .from('resources')
       .select('*, categories(name)')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false })  // Always sort newest first
       .limit(12);
     
-    // Simple category filter
-    if (category && category !== 'Featured') {
+    // Apply category filter if provided
+    if (category && category !== 'all') {
       try {
         const { data: catData, error: catError } = await supabase
           .from('categories')
