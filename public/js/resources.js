@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Track if we're currently accessing a resource to prevent multiple clicks
   let isAccessingResource = false;
+  let isSavingResource = false;
+  
+  // Store saved resources map (resourceId -> true/false)
+  let savedResourcesMap = {};
+  
+  // Current user info
+  let currentUser = null;
   
   // Exit if the resources grid isn't found
   if (!resourcesGrid) {
@@ -15,6 +22,36 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   } else {
     console.log('Resources grid found');
+  }
+  
+  // Initialize - check if user is logged in
+  async function initialize() {
+    try {
+      console.log('Initializing resources.js - checking auth state');
+      
+      // Get current user if auth.js is loaded
+      if (typeof getCurrentUser === 'function') {
+        console.log('getCurrentUser function is available');
+        try {
+          currentUser = await getCurrentUser();
+          console.log('Current user:', currentUser ? currentUser.id : 'Not logged in');
+          
+          if (!currentUser) {
+            console.log('No user found. Auth state:', 
+                        typeof getSupabase === 'function' ? 'Supabase client available' : 'No Supabase client');
+          }
+        } catch (authError) {
+          console.error('Error getting current user:', authError);
+        }
+      } else {
+        console.warn('getCurrentUser function is not available - auth.js might not be loaded yet');
+      }
+      
+      // Load resources
+      await loadResources();
+    } catch (error) {
+      console.error('Error during initialization:', error);
+    }
   }
   
   // URL validation function
@@ -127,17 +164,171 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Function to attach click handlers to all access buttons
-  function attachAccessButtonHandlers() {
-    console.log('Attaching access button handlers');
+  // Handle saving resources
+  async function handleSaveResource(saveBtn, resourceId) {
+    console.log('handleSaveResource called for resource ID:', resourceId);
+    
+    // Prevent multiple simultaneous saves
+    if (isSavingResource) {
+      console.log('Already saving a resource, ignoring click');
+      return;
+    }
+    
+    isSavingResource = true;
+    
+    try {
+      // Check if auth.js is properly loaded
+      if (typeof getCurrentUser !== 'function') {
+        console.error('Auth functions not available - auth.js may not be loaded correctly');
+        showNotification('Authentication system not available. Please refresh the page.', 'error');
+        isSavingResource = false;
+        return;
+      }
+      
+      // Try to get the current user again if not available
+      if (!currentUser) {
+        try {
+          console.log('Attempting to get current user again...');
+          currentUser = await getCurrentUser();
+        } catch (authError) {
+          console.error('Error getting current user:', authError);
+        }
+      }
+      
+      // Check if user is logged in
+      if (!currentUser) {
+        console.log('User not logged in, redirecting to login');
+        showNotification('Please log in to save resources', 'error');
+        window.location.href = '/login.html?redirect=index.html';
+        return;
+      }
+      
+      const userId = currentUser.id;
+      console.log('User ID for save operation:', userId);
+      
+      const icon = saveBtn.querySelector('i');
+      const isSaved = icon.classList.contains('fas');
+      
+      console.log('Current saved state:', isSaved ? 'Saved' : 'Not saved');
+      
+      // Apply visual feedback immediately
+      saveBtn.style.transform = 'scale(0.95)';
+      saveBtn.style.opacity = '0.7';
+      
+      // Show loading state
+      const originalIcon = icon.className;
+      icon.className = 'fas fa-spinner fa-spin';
+      saveBtn.disabled = true;
+      
+      if (!isSaved) {
+        console.log('Saving resource...');
+        // Save the resource
+        try {
+          console.log('Making POST request to /api/user/saved-resources with data:', {
+            user_id: userId,
+            resource_id: resourceId
+          });
+          
+          const response = await fetch('/api/user/saved-resources', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              resource_id: resourceId
+            }),
+          });
+          
+          console.log('Save response status:', response.status);
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Server returned error:', errorData);
+            throw new Error(errorData.message || 'Error saving resource');
+          }
+          
+          const responseData = await response.json();
+          console.log('Save response:', responseData);
+          
+          // Update saved state
+          savedResourcesMap[resourceId] = true;
+          
+          // Update UI
+          icon.className = 'fas fa-bookmark';
+          saveBtn.title = 'Saved';
+          showNotification('Resource saved', 'success', 2000);
+        } catch (error) {
+          console.error('Error in save API call:', error);
+          throw error;
+        }
+        
+      } else {
+        console.log('Unsaving resource...');
+        // Unsave the resource
+        try {
+          const response = await fetch(`/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`, {
+            method: 'DELETE',
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error removing saved resource');
+          }
+          
+          console.log('Unsave successful');
+          
+          // Update saved state
+          savedResourcesMap[resourceId] = false;
+          
+          // Update UI
+          icon.className = 'far fa-bookmark';
+          saveBtn.title = 'Save for later';
+          showNotification('Resource removed from saved items', 'success', 2000);
+        } catch (error) {
+          console.error('Error in unsave API call:', error);
+          throw error;
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error saving/unsaving resource:', error);
+      showNotification(`Failed to ${saveBtn.title === 'Saved' ? 'unsave' : 'save'} resource`, 'error');
+      
+      // Reset to original state
+      const icon = saveBtn.querySelector('i');
+      icon.className = saveBtn.title === 'Saved' ? 'fas fa-bookmark' : 'far fa-bookmark';
+      
+    } finally {
+      // Reset button state with a slight delay for better visual feedback
+      setTimeout(() => {
+        const icon = saveBtn.querySelector('i');
+        saveBtn.disabled = false;
+        saveBtn.style.transform = '';
+        saveBtn.style.opacity = '1';
+        
+        // Add bounce effect on completion
+        saveBtn.style.transform = 'translateY(-3px)';
+        setTimeout(() => {
+          saveBtn.style.transform = '';
+        }, 300);
+        
+        isSavingResource = false;
+      }, 500);
+    }
+  }
+  
+  // Function to attach click handlers to all access and save buttons
+  function attachButtonHandlers() {
+    console.log('Attaching button handlers');
     
     // Get all access buttons
     const accessButtons = document.querySelectorAll('.access-btn');
     console.log(`Found ${accessButtons.length} access buttons`);
     
-    // Attach click handlers to each button
+    // Attach click handlers to each access button
     accessButtons.forEach((btn, index) => {
-      console.log(`Setting up button ${index+1} with URL: ${btn.dataset.url}`);
+      console.log(`Setting up access button ${index+1} with URL: ${btn.dataset.url}`);
       
       // Remove any existing click handlers
       const newBtn = btn.cloneNode(true);
@@ -145,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Add the new click handler
       newBtn.addEventListener('click', function(e) {
-        console.log('Button clicked');
+        console.log('Access button clicked');
         e.preventDefault();
         e.stopPropagation();
         handleResourceAccess(this);
@@ -154,6 +345,93 @@ document.addEventListener('DOMContentLoaded', () => {
       // Ensure the button looks clickable
       newBtn.style.cursor = 'pointer';
     });
+    
+    // Get all save buttons
+    const saveButtons = document.querySelectorAll('.save-btn');
+    console.log(`Found ${saveButtons.length} save buttons`);
+    
+    // Attach click handlers to each save button
+    saveButtons.forEach((btn, index) => {
+      const resourceId = parseInt(btn.dataset.resourceId, 10);
+      console.log(`Setting up save button ${index+1} for resource ID: ${resourceId}`);
+      
+      if (!resourceId) {
+        console.warn(`Save button ${index+1} has no resource ID`);
+        return;
+      }
+      
+      // Remove any existing click handlers
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      // Ensure the button looks clickable
+      newBtn.style.cursor = 'pointer';
+      
+      // Apply additional inline styles to increase clickability
+      newBtn.style.position = 'relative';
+      newBtn.style.zIndex = '20';
+      
+      // Add visual indicator on hover
+      newBtn.addEventListener('mouseover', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+      });
+      
+      newBtn.addEventListener('mouseout', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.backgroundColor = 'transparent';
+      });
+      
+      // Update icon based on saved state
+      const icon = newBtn.querySelector('i');
+      if (savedResourcesMap[resourceId]) {
+        icon.className = 'fas fa-bookmark';
+        newBtn.title = 'Saved';
+      } else {
+        icon.className = 'far fa-bookmark';
+        newBtn.title = 'Save for later';
+      }
+      
+      // Add the new click handler with additional debugging
+      newBtn.addEventListener('click', function(e) {
+        console.log('Save button clicked for resource ID:', resourceId);
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Add click indicator
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = 'translateY(0)';
+        }, 100);
+        
+        handleSaveResource(this, resourceId);
+      });
+    });
+  }
+  
+  // Check which resources are saved by the current user
+  async function checkSavedResources(resourceIds) {
+    try {
+      if (!currentUser || !resourceIds.length) {
+        return {};
+      }
+      
+      // Get list of saved resources from API
+      const userId = currentUser.id;
+      const response = await fetch(`/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to check saved resources');
+      }
+      
+      const savedMap = await response.json();
+      console.log('Saved resources map:', savedMap);
+      
+      return savedMap;
+    } catch (error) {
+      console.error('Error checking saved resources:', error);
+      return {};
+    }
   }
   
   // Load resources function with improved error handling
@@ -177,13 +455,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000);
       });
       
-      let query;
+      let resources;
       
       // Check if Supabase client is available
       if (window.supabaseClient) {
         console.log('Using Supabase client for data');
         // Query resources from Supabase with timeout
-        query = window.supabaseClient
+        let query = window.supabaseClient
           .from('resources')
           .select('*, categories(name)');
         
@@ -202,14 +480,14 @@ document.addEventListener('DOMContentLoaded', () => {
           timeoutPromise
         ]);
         
-        const { data: resources, error } = result;
+        const { data, error } = result;
         
         // Handle Supabase error
         if (error) {
           throw new Error(error.message);
         }
         
-        renderResources(resources);
+        resources = data;
       } else {
         console.log('Using API endpoint for data');
         // Use the API endpoint if Supabase client is not available
@@ -225,9 +503,18 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
         
-        const resources = await response.json();
-        renderResources(resources);
+        resources = await response.json();
       }
+      
+      // Check which resources are saved by the current user
+      if (resources && resources.length > 0) {
+        const resourceIds = resources.map(r => r.id);
+        savedResourcesMap = await checkSavedResources(resourceIds);
+      }
+      
+      // Render the resources
+      renderResources(resources);
+      
     } catch (error) {
       console.error('Error loading resources:', error);
       
@@ -273,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'resource-card';
         
         // Safely get resource properties with fallbacks
+        const id = resource.id || index;
         const title = resource.title || 'Untitled Resource';
         const description = resource.description || 'No description available';
         const imageUrl = resource.image_url || 'https://via.placeholder.com/400x200?text=Resource';
@@ -290,6 +578,9 @@ document.addEventListener('DOMContentLoaded', () => {
           month: 'short',
           day: 'numeric'
         }) : 'Recently added';
+        
+        // Set saved status from our map
+        const isSaved = savedResourcesMap[id] || false;
         
         // Build card HTML
         card.innerHTML = `
@@ -322,8 +613,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>${createdAt}</span>
             </div>
             <div class="resource-actions">
-              <button class="save-btn" title="Save for later">
-                <i class="far fa-bookmark"></i>
+              <button class="save-btn" title="${isSaved ? 'Saved' : 'Save for later'}" data-resource-id="${id}" style="cursor: pointer; position: relative; z-index: 10;">
+                <i class="${isSaved ? 'fas' : 'far'} fa-bookmark"></i>
               </button>
               <button class="access-btn" data-url="${url}" style="cursor: pointer;">
                 <i class="fas fa-external-link-alt"></i> Access Resource
@@ -340,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Attach event handlers to all buttons after rendering
-    attachAccessButtonHandlers();
+    attachButtonHandlers();
   }
   
   // Set up filter buttons with error handling
@@ -364,34 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Filter buttons not found');
   }
   
-  // Initial load with error handling
-  try {
-    console.log('Starting initial resource load');
-    loadResources();
-  } catch (error) {
-    console.error('Error during initial resource load:', error);
-    resourcesGrid.innerHTML = `
-      <div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #e53e3e;">
-        <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
-        Failed to load resources: ${error.message || 'Unknown error'}
-        <div style="margin-top: 1rem;">
-          <button id="retry-btn" style="padding: 0.5rem 1rem; border-radius: 8px; background: var(--primary-color); color: white; border: none;">
-            Retry
-          </button>
-        </div>
-      </div>
-    `;
-    
-    const retryBtn = document.getElementById('retry-btn');
-    if (retryBtn) {
-      retryBtn.addEventListener('click', () => loadResources());
-    }
-  }
+  // Start initialization
+  initialize();
   
   // Additional initialization to make sure buttons are clickable 
   // for cases where resources are loaded from cached data
   setTimeout(() => {
-    attachAccessButtonHandlers();
+    attachButtonHandlers();
     console.log('Added delayed button handler initialization');
   }, 2000);
 }); 
