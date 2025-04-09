@@ -306,6 +306,10 @@
                 }
             } else {
                 console.error('Category button not found: ' + category);
+                // If we can't find the button, still try to load resources with the category
+                if (typeof loadResources === 'function') {
+                    loadResources(category);
+                }
             }
             
             // Smooth scroll to resources section
@@ -313,6 +317,32 @@
                 behavior: 'smooth' 
             });
         }
+        
+        // Add click event listeners to filter buttons for consistency
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.textContent.trim();
+                    
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Use the same loadResources function
+                    if (typeof loadResources === 'function') {
+                        if (category === 'Featured') {
+                            loadResources(null); // Featured is treated as null for the API
+                        } else {
+                            loadResources(category);
+                        }
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html> 
