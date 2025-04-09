@@ -1444,3 +1444,144 @@ input:focus, textarea:focus, select:focus {
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+/* Dashboard Sections */
+.dashboard-section {
+  display: none;
+}
+
+.dashboard-section.active {
+  display: block;
+}
+
+/* Dashboard Menu */
+.dashboard-menu a {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-menu a:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dashboard-menu a.active {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.dashboard-menu a.active::after {
+  display: none;
+}
+
+.dashboard-menu a i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Search and Filter */
+.search-and-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--primary-color);
+}
+
+.search-box i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary-color);
+}
+
+.filter-dropdown select {
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--primary-color);
+  min-width: 150px;
+  cursor: pointer;
+}
+
+/* Empty and Error States */
+.empty-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  grid-column: 1/-1;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  grid-column: 1/-1;
+}
+
+.loading-indicator i {
+  font-size: 2rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.primary-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* Unsave Button */
+.unsave-btn {
+  background-color: transparent;
+  color: #e53e3e;
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.unsave-btn:hover {
+  background-color: rgba(229, 62, 62, 0.1);
+  border-color: #e53e3e;
+}

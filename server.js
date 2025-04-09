@@ -132,6 +132,352 @@ app.get('/api/user/interests', async (req, res) => {
     res.json({ message: 'User interests endpoint (to be implemented)' });
 });
 
+// Test endpoint for validating resource URLs
+app.get('/api/test/resources', async (req, res) => {
+  try {
+    // Query all resources with their URLs
+    const { data, error } = await supabase
+      .from('resources')
+      .select('id, title, url')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching resources for testing:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    // Validate each URL and provide diagnostic information
+    const validatedResources = data.map(resource => {
+      let isValid = false;
+      let validationMessage = 'Missing URL';
+      
+      if (resource.url) {
+        try {
+          const url = new URL(resource.url);
+          isValid = url.protocol === 'http:' || url.protocol === 'https:';
+          validationMessage = isValid ? 'Valid URL' : `Invalid protocol: ${url.protocol}`;
+        } catch (e) {
+          validationMessage = `Invalid URL format: ${e.message}`;
+        }
+      }
+      
+      return {
+        id: resource.id,
+        title: resource.title,
+        url: resource.url || 'No URL provided',
+        isValid,
+        validationMessage
+      };
+    });
+    
+    // Count valid and invalid URLs
+    const validCount = validatedResources.filter(r => r.isValid).length;
+    const invalidCount = validatedResources.length - validCount;
+    
+    res.json({
+      total: validatedResources.length,
+      validCount,
+      invalidCount,
+      resources: validatedResources
+    });
+    
+  } catch (error) {
+    console.error('Error in resource URL validation endpoint:', error);
+    res.status(500).json({ error: error.message || 'Unknown error in validation endpoint' });
+  }
+});
+
+// Admin endpoint to fix resource URLs (for development/testing only)
+app.post('/api/admin/fix-resource-urls', async (req, res) => {
+  try {
+    // Simple admin check - in production, this would use proper authentication
+    const { adminKey } = req.body;
+    
+    if (!adminKey || adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+    
+    // Get resources with missing or invalid URLs
+    const { data, error } = await supabase
+      .from('resources')
+      .select('id, title, url');
+    
+    if (error) {
+      throw new Error(`Error fetching resources: ${error.message}`);
+    }
+    
+    const fixes = [];
+    const failures = [];
+    
+    // Process each resource
+    for (const resource of data) {
+      let needsFix = false;
+      let fixedUrl = resource.url;
+      
+      // Check if URL is missing or invalid
+      if (!resource.url || resource.url === '#' || resource.url === '') {
+        // Create a fallback URL based on the title
+        const slug = resource.title
+          .toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .replace(/\s+/g, '-');
+        
+        fixedUrl = `https://example.com/resource/${slug}`;
+        needsFix = true;
+      } else {
+        // Try to fix URLs without proper protocol
+        try {
+          new URL(resource.url);
+        } catch (e) {
+          // Assume it's missing the protocol
+          if (resource.url.startsWith('www.')) {
+            fixedUrl = `https://${resource.url}`;
+            needsFix = true;
+          } else if (!resource.url.startsWith('http://') && !resource.url.startsWith('https://')) {
+            fixedUrl = `https://${resource.url}`;
+            needsFix = true;
+          }
+        }
+      }
+      
+      // Update the resource if needed
+      if (needsFix) {
+        const { error: updateError } = await supabase
+          .from('resources')
+          .update({ url: fixedUrl })
+          .eq('id', resource.id);
+        
+        if (updateError) {
+          failures.push({
+            id: resource.id,
+            title: resource.title,
+            originalUrl: resource.url,
+            error: updateError.message
+          });
+        } else {
+          fixes.push({
+            id: resource.id,
+            title: resource.title,
+            originalUrl: resource.url,
+            fixedUrl
+          });
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      processed: data.length,
+      fixed: fixes.length,
+      failed: failures.length,
+      fixes,
+      failures
+    });
+    
+  } catch (error) {
+    console.error('Error in fix-resource-urls endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to fix resource URLs',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
+// User saved resources endpoints
+// Save a resource
+app.post('/api/user/saved-resources', async (req, res) => {
+  try {
+    const { user_id, resource_id } = req.body;
+    
+    if (!user_id || !resource_id) {
+      return res.status(400).json({ error: 'Missing required fields: user_id and resource_id' });
+    }
+    
+    // Check if already saved
+    const { data: existingSave, error: checkError } = await supabase
+      .from('saved_resources')
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('resource_id', resource_id)
+      .single();
+      
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is the "no rows returned" error code
+      throw new Error(`Error checking existing save: ${checkError.message}`);
+    }
+    
+    // If already saved, return success (idempotent operation)
+    if (existingSave) {
+      return res.json({ 
+        success: true, 
+        id: existingSave.id,
+        message: 'Resource already saved' 
+      });
+    }
+    
+    // Save the resource
+    const { data, error } = await supabase
+      .from('saved_resources')
+      .insert([
+        { user_id, resource_id, saved_at: new Date().toISOString() }
+      ])
+      .select()
+      .single();
+      
+    if (error) {
+      throw new Error(`Error saving resource: ${error.message}`);
+    }
+    
+    res.status(201).json({
+      success: true,
+      id: data.id,
+      message: 'Resource saved successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error in save resource endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to save resource',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
+// Unsave a resource
+app.delete('/api/user/saved-resources', async (req, res) => {
+  try {
+    const { user_id, resource_id } = req.query;
+    
+    if (!user_id || !resource_id) {
+      return res.status(400).json({ error: 'Missing required parameters: user_id and resource_id' });
+    }
+    
+    // Remove the saved resource
+    const { error } = await supabase
+      .from('saved_resources')
+      .delete()
+      .eq('user_id', user_id)
+      .eq('resource_id', resource_id);
+      
+    if (error) {
+      throw new Error(`Error removing saved resource: ${error.message}`);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Resource unsaved successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error in unsave resource endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to unsave resource',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
+// Get user's saved resources
+app.get('/api/user/:user_id/saved-resources', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    
+    if (!user_id) {
+      return res.status(400).json({ error: 'Missing required parameter: user_id' });
+    }
+    
+    // Get saved resources with full resource details
+    const { data, error } = await supabase
+      .from('saved_resources')
+      .select(`
+        id,
+        saved_at,
+        resources:resource_id (
+          id, 
+          title, 
+          description, 
+          url, 
+          image_url, 
+          source, 
+          rating,
+          created_at,
+          categories(name)
+        )
+      `)
+      .eq('user_id', user_id)
+      .order('saved_at', { ascending: false });
+      
+    if (error) {
+      throw new Error(`Error fetching saved resources: ${error.message}`);
+    }
+    
+    // Format the response to make it more usable
+    const formattedData = data.map(item => ({
+      id: item.id,
+      saved_at: item.saved_at,
+      ...item.resources,
+    }));
+    
+    res.json(formattedData);
+    
+  } catch (error) {
+    console.error('Error in get saved resources endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to fetch saved resources',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
+// Check if a resource is saved by user
+app.get('/api/user/:user_id/saved-resources/check', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { resource_ids } = req.query;
+    
+    if (!user_id) {
+      return res.status(400).json({ error: 'Missing required parameter: user_id' });
+    }
+    
+    if (!resource_ids) {
+      return res.status(400).json({ error: 'Missing required query parameter: resource_ids' });
+    }
+    
+    // Parse the resource_ids from the query string
+    const ids = resource_ids.split(',').map(id => parseInt(id.trim(), 10));
+    
+    // Get saved resources matching the provided IDs
+    const { data, error } = await supabase
+      .from('saved_resources')
+      .select('resource_id')
+      .eq('user_id', user_id)
+      .in('resource_id', ids);
+      
+    if (error) {
+      throw new Error(`Error checking saved resources: ${error.message}`);
+    }
+    
+    // Create a map of resource_id -> isSaved
+    const savedMap = {};
+    ids.forEach(id => {
+      savedMap[id] = false;
+    });
+    
+    // Update the ones that are saved
+    data.forEach(item => {
+      savedMap[item.resource_id] = true;
+    });
+    
+    res.json(savedMap);
+    
+  } catch (error) {
+    console.error('Error in check saved resources endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to check saved resources',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
 // Serve index.html for all other routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
