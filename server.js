@@ -66,6 +66,43 @@ app.get('/api/categories', async (req, res) => {
     }
 });
 
+// Get resource counts by category
+app.get('/api/resources/counts', async (req, res) => {
+  try {
+    console.log('Fetching resource counts by category');
+    
+    // Query to get counts by category
+    const { data, error } = await supabase
+      .from('resources')
+      .select('category_id, categories(name)')
+      .not('category_id', 'is', null);
+      
+    if (error) {
+      console.error('Error fetching resource counts:', error);
+      throw new Error(`Database query failed: ${error.message}`);
+    }
+    
+    // Count resources per category
+    const categoryCounts = {};
+    data.forEach(resource => {
+      const categoryName = resource.categories?.name;
+      if (categoryName) {
+        categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+      }
+    });
+    
+    console.log('Resource counts by category:', categoryCounts);
+    res.json(categoryCounts);
+    
+  } catch (error) {
+    console.error('Error getting resource counts:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch resource counts',
+      message: error.message || 'Unknown server error'
+    });
+  }
+});
+
 // Get resources
 app.get('/api/resources', async (req, res) => {
   try {

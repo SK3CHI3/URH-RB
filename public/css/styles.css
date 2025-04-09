@@ -324,6 +324,30 @@ nav a:hover, nav a.active {
     cursor: pointer;
     text-decoration: none;
     color: var(--text-color);
+    position: relative;
+}
+
+.resource-count {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.category-card:hover .resource-count {
+    transform: scale(1.1);
+    background-color: var(--primary-color);
 }
 
 .category-card:hover {

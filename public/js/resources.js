@@ -67,10 +67,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
+      // Load resource counts for category badges
+      await updateResourceCounts();
+      
       // Load resources
       await loadResources();
     } catch (error) {
       console.error('Error during initialization:', error);
+    }
+  }
+  
+  // Fetch and update resource counts for each category
+  async function updateResourceCounts() {
+    try {
+      console.log('Fetching resource counts for categories');
+      
+      // Construct the API URL based on the environment configuration
+      const baseUrl = window.appConfig?.apiUrl || '';
+      const countUrl = `${baseUrl}/api/resources/counts`;
+      
+      // If we're using static HTML, the counts are already in the HTML
+      const resourceCountElements = document.querySelectorAll('.resource-count');
+      if (resourceCountElements.length > 0) {
+        console.log('Resource count badges already present in HTML');
+        return;
+      }
+      
+      // Attempt to fetch counts from API
+      try {
+        const response = await fetch(countUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error fetching resource counts: ${response.status}`);
+        }
+        
+        const counts = await response.json();
+        console.log('Resource counts:', counts);
+        
+        // Update the count badges
+        document.querySelectorAll('.category-card').forEach(card => {
+          const categoryName = card.querySelector('h3').textContent.trim();
+          const count = counts[categoryName] || 0;
+          
+          // Get or create the resource count element
+          let countElement = card.querySelector('.resource-count');
+          if (!countElement) {
+            countElement = document.createElement('div');
+            countElement.className = 'resource-count';
+            card.appendChild(countElement);
+          }
+          
+          countElement.textContent = count;
+        });
+      } catch (error) {
+        console.error('Failed to fetch category counts:', error);
+        // On error, we'll leave the hardcoded counts as is
+      }
+    } catch (error) {
+      console.error('Error updating resource counts:', error);
     }
   }
   
