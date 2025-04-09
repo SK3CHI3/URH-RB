@@ -616,13 +616,9 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     
-    // Start the cron job for resource scraping
-    if (process.env.NODE_ENV !== 'development' || process.env.RUN_CRON === 'true') {
-        console.log('Starting resource scraper cron job...');
-        require('./cron');
-    } else {
-        console.log('Resource scraper cron job not started in development mode. Set RUN_CRON=true to enable.');
-    }
+    // Start the cron job for resource scraping - always run regardless of environment
+    console.log('Starting resource scraper cron job...');
+    require('./cron');
 });
 
 // Export the update function for use by the scraper

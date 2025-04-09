@@ -1,26 +1,30 @@
-// Scheduler for resource scraper
+// Scheduler for resource scraper with fixed daily times
+const schedule = require('node-schedule');
 const { runScrapers } = require('./scraper');
 
-// Set initial delay of 10 seconds to allow server to fully start
-const initialDelay = 10 * 1000;
+// Log startup
+console.log(`Resource scraper scheduler initializing...`);
 
-// Interval in milliseconds (15 minutes = 15 * 60 * 1000)
-const interval = 15 * 60 * 1000; 
-
-// Log the schedule
-console.log(`Resource scraper scheduled to run every 15 minutes.`);
-
-// Run scraper once after initial delay, then at regular intervals
-setTimeout(() => {
-    // Initial run
-    console.log(`[${new Date().toISOString()}] Running initial scrape...`);
+// Schedule scraper to run at 12:00 AM (midnight)
+const midnightJob = schedule.scheduleJob('0 0 * * *', function() {
+    console.log(`[${new Date().toISOString()}] Running 12:00 AM scheduled scrape...`);
     runScrapers();
-    
-    // Set up interval for subsequent runs
-    setInterval(() => {
-        console.log(`[${new Date().toISOString()}] Running scheduled scrape...`);
-        runScrapers();
-    }, interval);
-}, initialDelay);
+});
 
-console.log(`Resource scraper successfully scheduled. First run in ${initialDelay/1000} seconds.`); 
+// Schedule scraper to run at 12:00 PM (noon)
+const noonJob = schedule.scheduleJob('0 12 * * *', function() {
+    console.log(`[${new Date().toISOString()}] Running 12:00 PM scheduled scrape...`);
+    runScrapers();
+});
+
+// Calculate and log the next run times
+const nextMidnightRun = midnightJob.nextInvocation();
+const nextNoonRun = noonJob.nextInvocation();
+
+console.log(`Resource scraper successfully scheduled:`);
+console.log(`- Next midnight (12:00 AM) run: ${nextMidnightRun}`);
+console.log(`- Next noon (12:00 PM) run: ${nextNoonRun}`);
+
+// Run an initial scrape at startup
+console.log(`[${new Date().toISOString()}] Running initial scrape on startup...`);
+runScrapers(); 
