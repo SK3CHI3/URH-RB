@@ -510,16 +510,62 @@ nav a:hover, nav a.active {
 }
 
 .resource-image {
-    height: 200px;
     position: relative;
+    background-color: #f0f0f0;
     overflow: hidden;
+    height: 200px;
+}
+
+.resource-image::before {
+    content: attr(data-alt);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 1;
 }
 
 .resource-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s;
+    position: relative;
+    z-index: 2;
+    background-color: #f0f0f0;
+    transition: opacity 0.3s ease;
+}
+
+.resource-image img[data-loaded="true"] {
+    opacity: 1;
+}
+
+.resource-image img[src*="placeholder.com"] {
+    object-fit: contain;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+/* Hide loader when image is loaded */
+.resource-image img[data-loaded="true"] + .image-loader {
+    display: none !important;
+}
+
+/* Fix for Safari image loading issues */
+@media not all and (min-resolution:.001dpcm) { 
+    @supports (-webkit-appearance:none) {
+        .resource-image img {
+            backface-visibility: hidden;
+        }
+    }
 }
 
 .resource-card:hover .resource-image img {
@@ -1260,12 +1306,6 @@ input:focus, textarea:focus, select:focus {
 .tag.featured {
     background: linear-gradient(135deg, #2563eb, #3b82f6);
     color: white;
-}
-
-.resource-image {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px 12px 0 0;
 }
 
 .views {

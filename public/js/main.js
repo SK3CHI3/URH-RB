@@ -149,4 +149,80 @@ document.addEventListener('DOMContentLoaded', () => {
             // In a real application, this would trigger a search
         }
     });
+
+    // Global image fallback handler
+    const globalImageFallback = () => {
+        document.querySelectorAll('img:not([data-fallback-handled])').forEach(img => {
+            // Add attribute to prevent duplicate handling
+            img.setAttribute('data-fallback-handled', 'true');
+            
+            // Store original source for potential retries
+            const originalSrc = img.src;
+            img.setAttribute('data-original-src', originalSrc);
+            
+            // Set error handler
+            img.onerror = function() {
+                // Check if we're already showing a fallback
+                if (this.src.includes('placeholder.com')) return;
+                
+                const alt = this.alt || 'Image';
+                this.src = `https://via.placeholder.com/400x200?text=${encodeURIComponent(alt)}`;
+                
+                // Log error for debugging
+                console.warn(`Image load failed: ${originalSrc}`);
+                
+                // Add retry capability with delay
+                setTimeout(() => {
+                    // Create new image object to test if original is now available
+                    const testImg = new Image();
+                    testImg.onload = () => {
+                        // Original image now available, restore it
+                        console.log(`Recovered image: ${originalSrc}`);
+                        this.src = originalSrc;
+                    };
+                    testImg.src = originalSrc;
+                }, 5000); // Try again after 5 seconds
+            };
+            
+            // For images that may have already failed
+            if (img.complete && img.naturalHeight === 0) {
+                img.onerror();
+            }
+        });
+    };
+    
+    // Initial application
+    globalImageFallback();
+    
+    // Reapply when DOM changes (for dynamically added content)
+    // Use MutationObserver if available
+    if (window.MutationObserver) {
+        const observer = new MutationObserver((mutations) => {
+            let hasNewImages = false;
+            
+            mutations.forEach(mutation => {
+                if (mutation.type === 'childList') {
+                    const images = [...mutation.addedNodes]
+                        .filter(node => node.nodeName === 'IMG' || 
+                               (node.nodeType === 1 && node.querySelector('img')));
+                    
+                    if (images.length > 0) {
+                        hasNewImages = true;
+                    }
+                }
+            });
+            
+            if (hasNewImages) {
+                globalImageFallback();
+            }
+        });
+        
+        observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+        });
+    } else {
+        // Fallback for older browsers - periodic check
+        setInterval(globalImageFallback, 3000);
+    }
 }); 

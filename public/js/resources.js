@@ -717,8 +717,26 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Build card HTML
         card.innerHTML = `
-          <div class="resource-image">
-            <img src="${imageUrl}" alt="${title}" onerror="this.src='https://via.placeholder.com/400x200?text=Error'; this.onerror=null;">
+          <div class="resource-image" data-alt="${title}">${categoryName ? `<span class="image-fallback-text">${categoryName}</span>` : ''}
+            <img 
+              src="${imageUrl}" 
+              alt="${title}" 
+              loading="lazy"
+              onerror="
+                this.onerror=null; 
+                this.src='https://via.placeholder.com/400x200?text=Resource'; 
+                console.log('Image failed to load, using default for: ${title.replace(/'/g, "\\'")}');
+              "
+              onload="this.dataset.loaded='true'"
+              data-original="${imageUrl}"
+              style="opacity: 0; transition: opacity 0.3s ease;"
+            >
+            <noscript>
+              <img src="https://via.placeholder.com/400x200?text=${encodeURIComponent(title)}" alt="${title}">
+            </noscript>
+            <div class="image-loader" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
             <div class="featured-badge">
               <i class="fas fa-star"></i> New
             </div>
@@ -765,6 +783,70 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Attach event handlers to all buttons after rendering
     attachButtonHandlers();
+    
+    // Initialize image loading for all cards
+    initializeImageLoading();
+  }
+  
+  // Function to handle image loading with fallbacks and animations
+  function initializeImageLoading() {
+    // Add the spin animation if not already in the document
+    if (!document.getElementById('image-animations')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'image-animations';
+      styleEl.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+    
+    // Get all resource card images
+    const images = document.querySelectorAll('.resource-card .resource-image img:not([data-initialized])');
+    
+    images.forEach(img => {
+      // Mark as initialized to avoid double handling
+      img.setAttribute('data-initialized', 'true');
+      
+      // Fade in images when they load successfully
+      img.addEventListener('load', function() {
+        // Remove the loader
+        const loader = this.parentNode.querySelector('.image-loader');
+        if (loader) loader.style.display = 'none';
+        
+        // Fade in the image
+        this.style.opacity = '1';
+      });
+      
+      // Check if image is already loaded (for cached images)
+      if (img.complete) {
+        img.style.opacity = '1';
+        const loader = img.parentNode.querySelector('.image-loader');
+        if (loader) loader.style.display = 'none';
+      }
+      
+      // Set up retry mechanism for failed images
+      img.setAttribute('data-retry-count', '0');
+      img.addEventListener('error', function() {
+        const retryCount = parseInt(this.getAttribute('data-retry-count') || '0');
+        
+        if (retryCount < 2) { // Try up to 2 retries
+          // Increment retry count
+          this.setAttribute('data-retry-count', (retryCount + 1).toString());
+          
+          // Try original URL again after a delay (network glitch recovery)
+          const originalSrc = this.getAttribute('data-original');
+          if (originalSrc) {
+            setTimeout(() => {
+              console.log(`Retrying image load (${retryCount + 1}/2): ${originalSrc}`);
+              this.src = originalSrc;
+            }, 1500); // Wait 1.5s before retry
+          }
+        }
+      });
+    });
   }
   
   // Set up filter buttons with error handling
