@@ -242,12 +242,22 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Ensure we have the correct base URL for the environment
       const baseUrl = window.appConfig?.apiUrl || '';
+      let saveUrl, unsaveUrl;
+      
+      if (baseUrl.includes('/.netlify/functions')) {
+        // In production with Netlify Functions
+        saveUrl = `${baseUrl}/saved-resources`;
+        unsaveUrl = `${baseUrl}/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
+      } else {
+        // In development with Express server
+        saveUrl = `${baseUrl}/api/user/saved-resources`;
+        unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
+      }
       
       if (!isSaved) {
         console.log('Saving resource...');
         // Save the resource
         try {
-          const saveUrl = `${baseUrl}/api/user/saved-resources`;
           console.log('Making POST request to', saveUrl, 'with data:', {
             user_id: userId,
             resource_id: resourceId
@@ -291,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Unsaving resource...');
         // Unsave the resource
         try {
-          const unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
           console.log('Making DELETE request to:', unsaveUrl);
           
           const response = await fetch(unsaveUrl, {
@@ -448,7 +457,17 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Ensure we have the correct base URL for the environment
       const baseUrl = window.appConfig?.apiUrl || '';
-      const apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`;
+      
+      // Handle different API paths for server.js vs Netlify Functions
+      let apiUrl;
+      
+      if (baseUrl.includes('/.netlify/functions')) {
+        // In production with Netlify Functions
+        apiUrl = `${baseUrl}/saved-resources?resource_ids=${resourceIds.join(',')}`;
+      } else {
+        // In development with Express server
+        apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`;
+      }
       
       console.log('Checking saved resources at URL:', apiUrl);
       
@@ -526,13 +545,29 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Using API endpoint for data');
         // Use the API endpoint if Supabase client is not available
         const baseUrl = window.appConfig?.apiUrl || '';
-        const apiUrl = category && category !== 'Featured' 
-          ? `${baseUrl}/api/resources?category=${encodeURIComponent(category)}`
-          : `${baseUrl}/api/resources`;
+        
+        // Handle different API paths for server.js vs Netlify Functions
+        let apiUrl;
+        
+        if (baseUrl.includes('/.netlify/functions')) {
+          // In production with Netlify Functions
+          apiUrl = category && category !== 'Featured'
+            ? `${baseUrl}/resources?category=${encodeURIComponent(category)}`
+            : `${baseUrl}/resources`;
+        } else {
+          // In development with Express server
+          apiUrl = category && category !== 'Featured' 
+            ? `${baseUrl}/api/resources?category=${encodeURIComponent(category)}`
+            : `${baseUrl}/api/resources`;
+        }
           
         console.log('Fetching from API URL:', apiUrl);
         
-        const response = await fetch(apiUrl);
+        const response = await Promise.race([
+          fetch(apiUrl),
+          timeoutPromise
+        ]);
+        
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }

@@ -4,7 +4,7 @@ const config = {
         apiUrl: 'http://localhost:3000'
     },
     production: {
-        apiUrl: '' // Empty string for relative URLs in production
+        apiUrl: '/.netlify/functions' // Use Netlify Functions path in production
     }
 };
 
@@ -43,10 +43,10 @@ function detectEnvironment() {
     
     // If we're in production (not localhost)
     if (!isLocalhost) {
-        console.log('Detected production environment');
+        console.log('Detected production environment - using Netlify Functions');
         return {
             environment: 'production',
-            apiUrl: '' // Use relative URLs in production
+            apiUrl: config.production.apiUrl
         };
     }
     
