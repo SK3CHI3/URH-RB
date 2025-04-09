@@ -1,5 +1,5 @@
 // Scheduler for resource scraper
-const { runScraper } = require('./scraper');
+const { runScrapers } = require('./scraper');
 
 // Set initial delay of 10 seconds to allow server to fully start
 const initialDelay = 10 * 1000;
@@ -14,12 +14,12 @@ console.log(`Resource scraper scheduled to run every 15 minutes.`);
 setTimeout(() => {
     // Initial run
     console.log(`[${new Date().toISOString()}] Running initial scrape...`);
-    runScraper();
+    runScrapers();
     
     // Set up interval for subsequent runs
     setInterval(() => {
         console.log(`[${new Date().toISOString()}] Running scheduled scrape...`);
-        runScraper();
+        runScrapers();
     }, interval);
 }, initialDelay);
 
