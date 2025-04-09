@@ -1556,19 +1556,20 @@ input:focus, textarea:focus, select:focus {
 }
 
 .primary-btn {
-  padding: 0.8rem 1.5rem;
-  background-color: var(--accent-color);
+  background: linear-gradient(135deg, var(--primary-color), #4a00e0);
   color: white;
-  border-radius: 8px;
-  font-weight: 500;
   border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .primary-btn:hover {
-  background-color: #2563eb;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Unsave Button */
