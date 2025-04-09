@@ -2,6 +2,7 @@
   functions = "netlify/functions"
   publish = "."
   command = "npm install"
+  ignore = "git diff --quiet HEAD^ HEAD -- '!netlify/'"
 
 [functions]
   external_node_modules = ["@supabase/supabase-js"]

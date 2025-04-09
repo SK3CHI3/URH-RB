@@ -39,19 +39,56 @@ exports.handler = async (event, context) => {
         const userId = params.user_id;
         console.log('Getting saved resources for user:', userId);
         
-        // Join saved_resources with resources to get full resource details
-        const { data, error } = await supabase
-          .rpc('get_user_saved_resources', { user_id_param: userId });
+        // First get saved resources IDs
+        const { data: savedResources, error: savedError } = await supabase
+          .from('saved_resources')
+          .select('id, resource_id, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
         
-        if (error) {
-          console.error('Supabase query error:', error);
+        if (savedError) {
+          console.error('Supabase saved resources query error:', savedError);
           throw new Error('Database query failed');
         }
+        
+        if (!savedResources || savedResources.length === 0) {
+          return {
+            statusCode: 200,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify([])
+          };
+        }
+        
+        // Get all resource IDs
+        const resourceIds = savedResources.map(item => item.resource_id);
+        
+        // Then get the actual resource details
+        const { data: resources, error: resourcesError } = await supabase
+          .from('resources')
+          .select('*, categories(name)')
+          .in('id', resourceIds);
+          
+        if (resourcesError) {
+          console.error('Supabase resources query error:', resourcesError);
+          throw new Error('Failed to fetch resource details');
+        }
+        
+        // Combine the data
+        const combinedData = savedResources.map(savedItem => {
+          const resource = resources.find(r => r.id === savedItem.resource_id) || {};
+          return {
+            saved_id: savedItem.id,
+            resource_id: savedItem.resource_id,
+            saved_at: savedItem.created_at,
+            user_id: userId,
+            ...resource
+          };
+        });
         
         return {
           statusCode: 200,
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(data || [])
+          body: JSON.stringify(combinedData || [])
         };
       }
       
