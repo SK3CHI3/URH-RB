@@ -296,28 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Ensure we have the correct base URL for the environment
       const baseUrl = window.appConfig?.apiUrl || '';
-      let saveUrl, unsaveUrl;
       
-      if (baseUrl.includes('/.netlify/functions')) {
-        // In production with Netlify Functions
-        saveUrl = `${baseUrl}/saved-resources`;
-        unsaveUrl = `${baseUrl}/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
-      } else {
-        // In development with Express server
-        saveUrl = `${baseUrl}/api/user/saved-resources`;
-        unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${userId}&resource_id=${resourceId}`;
-      }
+      // For local development, we need to use the full path including /api
+      const endpoint = `${baseUrl}/api/user/saved-resources`;
+      console.log('Using endpoint:', endpoint);
       
-      if (!isSaved) {
-        console.log('Saving resource...');
-        // Save the resource
-        try {
-          console.log('Making POST request to', saveUrl, 'with data:', {
-            user_id: userId,
-            resource_id: resourceId
-          });
+      // Save the resource
+      try {
+        if (!isSaved) {
+          console.log('Making POST request to save resource:', endpoint);
           
-          const response = await fetch(saveUrl, {
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -328,16 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }),
           });
           
-          console.log('Save response status:', response.status);
-          
           if (!response.ok) {
             const errorData = await response.json();
-            console.error('Server returned error:', errorData);
             throw new Error(errorData.message || 'Error saving resource');
           }
-          
-          const responseData = await response.json();
-          console.log('Save response:', responseData);
           
           // Update saved state
           savedResourcesMap[resourceId] = true;
@@ -345,20 +328,21 @@ document.addEventListener('DOMContentLoaded', () => {
           // Update UI
           icon.className = 'fas fa-bookmark';
           saveBtn.title = 'Saved';
-          showNotification('Resource saved', 'success', 2000);
-        } catch (error) {
-          console.error('Error in save API call:', error);
-          throw error;
-        }
-        
-      } else {
-        console.log('Unsaving resource...');
-        // Unsave the resource
-        try {
-          console.log('Making DELETE request to:', unsaveUrl);
+          showNotification('Resource saved successfully', 'success', 2000);
           
-          const response = await fetch(unsaveUrl, {
+          // Refresh the dashboard if we're on it
+          if (window.location.pathname === '/dashboard.html') {
+            await loadSavedResources();
+          }
+          
+        } else {
+          console.log('Making DELETE request to unsave resource:', endpoint);
+          
+          const response = await fetch(`${endpoint}?user_id=${userId}&resource_id=${resourceId}`, {
             method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
           });
           
           if (!response.ok) {
@@ -375,10 +359,16 @@ document.addEventListener('DOMContentLoaded', () => {
           icon.className = 'far fa-bookmark';
           saveBtn.title = 'Save for later';
           showNotification('Resource removed from saved items', 'success', 2000);
-        } catch (error) {
-          console.error('Error in unsave API call:', error);
-          throw error;
+          
+          // Refresh the dashboard if we're on it
+          if (window.location.pathname === '/dashboard.html') {
+            await loadSavedResources();
+          }
         }
+        
+      } catch (error) {
+        console.error('Error in save/unsave operation:', error);
+        throw error;
       }
       
     } catch (error) {

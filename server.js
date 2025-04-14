@@ -41,6 +41,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Proxy middleware for API endpoints
+app.use('/api', (req, res, next) => {
+  console.log('Proxying API request:', req.method, req.path);
+  next();
+});
+
 // Serve static files from root directory
 app.use(express.static(__dirname));
 
