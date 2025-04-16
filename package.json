@@ -7,7 +7,15 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "scrape": "node scraper.js",
-    "cron": "node cron.js"
+    "cron": "node cron.js",
+    "scheduler": "pm2 start cron.js --name 'resource-scraper-scheduler'",
+    "deploy-scraper": "node deploy-scraper.js",
+    "scraper-logs": "pm2 logs resource-scraper-scheduler",
+    "scraper-status": "pm2 status resource-scraper-scheduler",
+    "scraper-stop": "pm2 stop resource-scraper-scheduler",
+    "scraper-restart": "pm2 restart resource-scraper-scheduler",
+    "scraper-delete": "pm2 delete resource-scraper-scheduler",
+    "setup-startup": "pm2 startup"
   },
   "keywords": [
     "resources",
@@ -26,7 +34,9 @@
     "express": "^4.18.2",
     "firecrawl": "^1.23.9",
     "morgan": "^1.10.0",
-    "nodemailer": "^6.9.7"
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.7",
+    "pm2": "^5.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
