@@ -4,7 +4,8 @@ const config = {
         apiUrl: 'http://localhost:3000'
     },
     production: {
-        apiUrl: '/.netlify/functions' // Use Netlify Functions path in production
+        // Force Netlify Functions path to be absolute in production
+        apiUrl: window.location.origin + '/.netlify/functions'
     }
 };
 
@@ -15,7 +16,8 @@ function detectEnvironment() {
         hostname: window.location.hostname,
         port: window.location.port,
         protocol: window.location.protocol,
-        href: window.location.href
+        href: window.location.href,
+        origin: window.location.origin
     });
     
     // Check if running on localhost
@@ -29,7 +31,8 @@ function detectEnvironment() {
     console.log('Environment detection:', {
         isLocalhost,
         isLiveServer,
-        hostname: window.location.hostname
+        hostname: window.location.hostname,
+        origin: window.location.origin
     });
     
     // If we're on localhost but using Live Server, we need to point to the Node.js server
