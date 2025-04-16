@@ -1617,3 +1617,86 @@ input:focus, textarea:focus, select:focus {
   background-color: rgba(229, 62, 62, 0.1);
   border-color: #e53e3e;
 }
+
+/* Policy tooltip styles */
+.policy-container {
+    position: relative;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.policy-link {
+    display: inline-block;
+    position: relative;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 0.25rem 0;
+}
+
+.policy-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    width: 350px;
+    padding: 15px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    color: var(--primary-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+    transform-origin: bottom center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.policy-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: var(--card-bg) transparent transparent transparent;
+}
+
+.policy-tooltip h4 {
+    margin-bottom: 8px;
+    color: var(--accent-color);
+    font-size: 0.95rem;
+}
+
+.policy-tooltip p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--secondary-color);
+}
+
+.policy-container:hover .policy-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Responsive tooltip */
+@media (max-width: 768px) {
+    .policy-tooltip {
+        width: 280px;
+        left: 0;
+        transform: translateX(0) scale(0.95);
+    }
+    
+    .policy-tooltip::after {
+        left: 15%;
+    }
+    
+    .policy-container:hover .policy-tooltip {
+        transform: translateX(0) scale(1);
+    }
+}
