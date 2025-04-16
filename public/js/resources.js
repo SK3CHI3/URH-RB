@@ -269,8 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Construct the endpoint for saved resources based on environment
         let endpoint;
         if (baseUrl.includes('/.netlify/functions')) {
-          // In production with Netlify Functions
-          endpoint = `${baseUrl}/saved-resources`;
+          // In production with Netlify Functions - use full absolute URL
+          endpoint = `${window.location.origin}/.netlify/functions/saved-resources`;
+          console.log('Using full Netlify Functions URL:', endpoint);
         } else {
           // In development with Express server
           endpoint = `${baseUrl}/user/saved-resources`;
@@ -487,8 +488,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Construct the correct endpoint based on environment
       let endpoint;
       if (baseUrl.includes('/.netlify/functions')) {
-        // In production with Netlify Functions
-        endpoint = `${baseUrl}/saved-resources/check`;
+        // In production with Netlify Functions - use full absolute URL
+        endpoint = `${window.location.origin}/.netlify/functions/saved-resources/check`;
+        console.log('Using full Netlify Functions URL:', endpoint);
       } else {
         // In development with Express server
         endpoint = `${baseUrl}/user/${userId}/saved-resources/check`;

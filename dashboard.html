@@ -259,9 +259,9 @@
                 
                 let apiUrl;
                 if (baseUrl.includes('/.netlify/functions')) {
-                    // In production with Netlify Functions
-                    apiUrl = `${baseUrl}/saved-resources?user_id=${encodeURIComponent(user.id)}`;
-                    console.log('Using Netlify function path:', apiUrl);
+                    // In production with Netlify Functions - use full absolute URL
+                    apiUrl = `${window.location.origin}/.netlify/functions/saved-resources?user_id=${encodeURIComponent(user.id)}`;
+                    console.log('Using full Netlify function path:', apiUrl);
                 } else {
                     // In development with Express server
                     apiUrl = `${baseUrl}/user/${encodeURIComponent(user.id)}/saved-resources`;
@@ -515,9 +515,9 @@
                                 
                                 let unsaveUrl;
                                 if (baseUrl.includes('/.netlify/functions')) {
-                                    // In production with Netlify Functions
-                                    unsaveUrl = `${baseUrl}/saved-resources?user_id=${encodeURIComponent(user.id)}&resource_id=${encodeURIComponent(resourceId)}`;
-                                    console.log('Using Netlify function for unsave:', unsaveUrl);
+                                    // In production with Netlify Functions - use full absolute URL
+                                    unsaveUrl = `${window.location.origin}/.netlify/functions/saved-resources?user_id=${encodeURIComponent(user.id)}&resource_id=${encodeURIComponent(resourceId)}`;
+                                    console.log('Using full Netlify function URL for unsave:', unsaveUrl);
                                 } else {
                                     // In development with Express server
                                     unsaveUrl = `${baseUrl}/user/saved-resources?user_id=${encodeURIComponent(user.id)}&resource_id=${encodeURIComponent(resourceId)}`;
