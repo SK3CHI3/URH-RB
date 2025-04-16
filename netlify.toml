@@ -14,6 +14,24 @@
   status = 200
 
 [[redirects]]
+  from = "/saved-resources*"
+  to = "/.netlify/functions/saved-resources:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/resources*"
+  to = "/.netlify/functions/resources:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/categories*"
+  to = "/.netlify/functions/categories:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/user/saved-resources*"
   to = "/.netlify/functions/saved-resources:splat"
   status = 200
