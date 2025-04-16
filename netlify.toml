@@ -14,6 +14,30 @@
   status = 200
 
 [[redirects]]
+  from = "/api/user/saved-resources*"
+  to = "/.netlify/functions/saved-resources:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/user/*/saved-resources*"
+  to = "/.netlify/functions/saved-resources:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/resources*"
+  to = "/.netlify/functions/resources:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/categories*"
+  to = "/.netlify/functions/categories:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
@@ -38,4 +62,7 @@
 [dev]
   functions = "netlify/functions"
   publish = "."
-  port = 3000 
+  port = 3000
+
+[build.environment]
+  NODE_ENV = "production" 
