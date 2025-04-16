@@ -441,13 +441,14 @@ app.get('/api/user/:user_id/saved-resources', async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameter: user_id' });
     }
     
-    // Get saved resources with full resource details
-    console.log('Running Supabase query for saved resources');
+    // Get saved resources with full resource details using a single join
+    console.log('Running Supabase query for saved resources with join');
     const { data, error } = await supabase
       .from('saved_resources')
       .select(`
         id,
-        saved_at,
+        saved_at:created_at,
+        resource_id,
         resources:resource_id (
           id, 
           title, 
@@ -457,7 +458,8 @@ app.get('/api/user/:user_id/saved-resources', async (req, res) => {
           source, 
           rating,
           created_at,
-          categories(name)
+          category_id,
+          categories:category_id(name)
         )
       `)
       .eq('user_id', user_id)
@@ -468,19 +470,25 @@ app.get('/api/user/:user_id/saved-resources', async (req, res) => {
       throw new Error(`Error fetching saved resources: ${error.message}`);
     }
     
-    console.log('Saved resources raw data:', JSON.stringify(data));
+    console.log(`Found ${data?.length || 0} saved resources`);
     
     // Format the response to make it more usable
     const formattedData = data.map(item => {
-      console.log('Processing item:', JSON.stringify(item));
-      if (!item.resources) {
-        console.warn(`Item ID ${item.id} has no associated resource data`);
-      }
+      const resource = item.resources || {};
       return {
         id: item.id,
-        saved_id: item.id, // Add saved_id for unsave functionality
+        saved_id: item.id,
         saved_at: item.saved_at,
-        ...(item.resources || {}),
+        resource_id: item.resource_id,
+        title: resource.title,
+        description: resource.description,
+        url: resource.url,
+        image_url: resource.image_url,
+        category_id: resource.category_id,
+        rating: resource.rating,
+        source: resource.source,
+        created_at: resource.created_at,
+        categories: resource.categories
       };
     });
     

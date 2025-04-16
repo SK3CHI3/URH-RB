@@ -55,19 +55,35 @@ exports.handler = async (event, context) => {
         const userId = params.user_id;
         console.log('Getting saved resources for user:', userId);
         
-        // First get saved resources IDs
-        const { data: savedResources, error: savedError } = await supabase
+        // First get saved resources with full resource details using joins
+        const { data: savedResourcesWithDetails, error: joinError } = await supabase
           .from('saved_resources')
-          .select('id, resource_id, created_at')
+          .select(`
+            id,
+            saved_at:created_at,
+            resource_id,
+            resources:resource_id (
+              id,
+              title,
+              description,
+              url,
+              image_url,
+              category_id,
+              rating,
+              source,
+              created_at,
+              categories:category_id(name)
+            )
+          `)
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
-        
-        if (savedError) {
-          console.error('Supabase saved resources query error:', savedError);
+
+        if (joinError) {
+          console.error('Supabase saved resources query error:', joinError);
           throw new Error('Database query failed');
         }
         
-        if (!savedResources || savedResources.length === 0) {
+        if (!savedResourcesWithDetails || savedResourcesWithDetails.length === 0) {
           return {
             statusCode: 200,
             headers: { ...headers, 'Content-Type': 'application/json' },
@@ -75,56 +91,47 @@ exports.handler = async (event, context) => {
           };
         }
         
-        // Get all resource IDs
-        const resourceIds = savedResources.map(item => item.resource_id);
-        
-        // Then get the actual resource details
-        const { data: resources, error: resourcesError } = await supabase
-          .from('resources')
-          .select('*, categories(name)')
-          .in('id', resourceIds);
-          
-        if (resourcesError) {
-          console.error('Supabase resources query error:', resourcesError);
-          throw new Error('Failed to fetch resource details');
-        }
-        
-        // Combine the data
-        const combinedData = savedResources.map(savedItem => {
-          const resource = resources.find(r => r.id === savedItem.resource_id) || {};
+        // Format the response to make it more usable
+        const formattedData = savedResourcesWithDetails.map(item => {
+          const resource = item.resources || {};
           return {
-            saved_id: savedItem.id,
-            resource_id: savedItem.resource_id,
-            saved_at: savedItem.created_at,
-            user_id: userId,
-            ...resource
+            id: item.id,
+            saved_id: item.id,
+            saved_at: item.saved_at,
+            resource_id: item.resource_id,
+            title: resource.title,
+            description: resource.description,
+            url: resource.url,
+            image_url: resource.image_url,
+            category_id: resource.category_id,
+            rating: resource.rating,
+            source: resource.source,
+            created_at: resource.created_at,
+            categories: resource.categories
           };
         });
+        
+        console.log(`Returning ${formattedData.length} saved resources`);
         
         return {
           statusCode: 200,
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(combinedData || [])
+          body: JSON.stringify(formattedData)
         };
       }
       
-      // Case 2: Check which resources are saved by a user
-      if (params.resource_ids) {
-        const userId = path.split('/').filter(Boolean).pop() || params.user_id;
-        const resourceIds = params.resource_ids.split(',').map(id => parseInt(id, 10));
+      // Case 2: Check if resources are saved by user
+      if (params.user_id && params.resource_ids) {
+        const userId = params.user_id;
+        const resourceIds = params.resource_ids.split(',').map(id => {
+          // Try to convert to integer but keep as string if it fails
+          const parsed = parseInt(id.trim(), 10);
+          return isNaN(parsed) ? id.trim() : parsed;
+        });
         
-        console.log('Checking saved resources for user:', userId);
-        console.log('Resource IDs:', resourceIds);
+        console.log('Checking saved status for user:', userId, 'resources:', resourceIds);
         
-        if (!userId || !resourceIds.length) {
-          return {
-            statusCode: 400,
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ error: 'Missing user ID or resource IDs' })
-          };
-        }
-        
-        // Query saved resources
+        // Get saved resources matching the resource IDs
         const { data, error } = await supabase
           .from('saved_resources')
           .select('resource_id')
@@ -132,11 +139,11 @@ exports.handler = async (event, context) => {
           .in('resource_id', resourceIds);
           
         if (error) {
-          console.error('Supabase query error:', error);
+          console.error('Supabase error checking saved resources:', error);
           throw new Error('Database query failed');
         }
         
-        // Convert to map format { '1': true, '2': true, ... }
+        // Create the saved map
         const savedMap = {};
         resourceIds.forEach(id => {
           savedMap[id] = false;
@@ -147,6 +154,8 @@ exports.handler = async (event, context) => {
             savedMap[item.resource_id] = true;
           });
         }
+        
+        console.log('Returning saved resources map:', savedMap);
         
         return {
           statusCode: 200,

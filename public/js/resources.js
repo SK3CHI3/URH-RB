@@ -365,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadSavedResources();
           }
         }
-        
       } catch (error) {
         console.error('Error in save/unsave operation:', error);
         throw error;
@@ -492,7 +491,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check which resources are saved by the current user
   async function checkSavedResources(resourceIds) {
     try {
-      if (!currentUser || !resourceIds.length) {
+      if (!currentUser || !resourceIds || !resourceIds.length) {
+        console.log('Cannot check saved resources: missing user or resource IDs');
         return {};
       }
       
@@ -505,19 +505,31 @@ document.addEventListener('DOMContentLoaded', () => {
       // Handle different API paths for server.js vs Netlify Functions
       let apiUrl;
       
+      // Convert resourceIds to strings for safety
+      const stringResourceIds = resourceIds.map(id => String(id));
+      
       if (baseUrl.includes('/.netlify/functions')) {
         // In production with Netlify Functions
-        apiUrl = `${baseUrl}/saved-resources?resource_ids=${resourceIds.join(',')}`;
+        apiUrl = `${baseUrl}/saved-resources/check?user_id=${userId}&resource_ids=${stringResourceIds.join(',')}`;
       } else {
         // In development with Express server
-        apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${resourceIds.join(',')}`;
+        apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${stringResourceIds.join(',')}`;
       }
       
       console.log('Checking saved resources at URL:', apiUrl);
       
-      const response = await fetch(apiUrl);
+      // Use fetch with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out')), 10000)
+      );
+      
+      const response = await Promise.race([
+        fetch(apiUrl),
+        timeoutPromise
+      ]);
       
       if (!response.ok) {
+        console.error('Failed to check saved resources, status:', response.status);
         throw new Error('Failed to check saved resources');
       }
       

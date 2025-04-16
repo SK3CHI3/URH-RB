@@ -242,18 +242,20 @@
         
         // Load saved resources
         async function loadSavedResources() {
-            const user = await getCurrentUser();
-            if (!user) return;
-            
-            const gridElement = document.getElementById('saved-resources-grid');
-            
             try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    console.error('No authenticated user found for loading saved resources');
+                    return;
+                }
+                
                 console.log('Loading saved resources for user:', user.id);
+                const gridElement = document.getElementById('saved-resources-grid');
                 gridElement.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i><p>Loading your saved resources...</p></div>';
                 
                 // Fetch saved resources from API
                 const baseUrl = window.appConfig?.apiUrl || '';
-                console.log('Using API URL:', baseUrl);
+                console.log('Using API base URL:', baseUrl);
                 
                 let apiUrl;
                 if (baseUrl.includes('/.netlify/functions')) {
@@ -267,70 +269,85 @@
                 }
                 
                 console.log('Fetching saved resources from:', apiUrl);
-                const response = await fetch(apiUrl);
+                
+                // Use fetch with timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timed out')), 10000)
+                );
+                
+                const response = await Promise.race([
+                    fetch(apiUrl),
+                    timeoutPromise
+                ]);
+                
+                console.log('API response status:', response.status);
                 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response from API:', errorText);
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
                 
                 const savedResources = await response.json();
-                console.log('Saved resources data:', savedResources);
+                console.log('Saved resources data received:', savedResources.length);
                 
-                // Update count in stats
-                document.getElementById('saved-resources-count').textContent = savedResources.length;
-                
-                // Display saved resources
-                if (savedResources.length === 0) {
-                    console.log('No saved resources found');
-                    gridElement.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-bookmark" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
-                            <h3>No saved resources yet</h3>
-                            <p>Resources you save will appear here.</p>
-                            <a href="index.html" class="primary-btn" style="display: inline-block; margin-top: 1rem;">
-                                <i class="fas fa-search"></i> Browse Resources
-                            </a>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Render resources
-                gridElement.innerHTML = '';
-                
-                // Apply sorting
-                const sortSelect = document.getElementById('saved-sort');
-                sortAndRenderResources(savedResources, sortSelect.value);
-                
-                // Add event listener for sort change
-                sortSelect.addEventListener('change', () => {
-                    sortAndRenderResources(savedResources, sortSelect.value);
-                });
-                
-                // Add event listener for search
-                const searchInput = document.getElementById('saved-search');
-                searchInput.addEventListener('input', () => {
-                    const searchTerm = searchInput.value.toLowerCase().trim();
+                if (savedResources && Array.isArray(savedResources)) {
+                    // Update count in stats
+                    document.getElementById('saved-resources-count').textContent = savedResources.length;
                     
-                    if (!searchTerm) {
-                        sortAndRenderResources(savedResources, sortSelect.value);
+                    // Display saved resources
+                    if (savedResources.length === 0) {
+                        console.log('No saved resources found');
+                        gridElement.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-bookmark" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+                                <h3>No saved resources yet</h3>
+                                <p>Resources you save will appear here.</p>
+                                <a href="index.html" class="primary-btn" style="display: inline-block; margin-top: 1rem;">
+                                    <i class="fas fa-search"></i> Browse Resources
+                                </a>
+                            </div>
+                        `;
                         return;
                     }
                     
-                    const filteredResources = savedResources.filter(resource => {
-                        return (
-                            resource.title?.toLowerCase().includes(searchTerm) ||
-                            resource.description?.toLowerCase().includes(searchTerm) ||
-                            resource.source?.toLowerCase().includes(searchTerm) ||
-                            resource.categories?.name?.toLowerCase().includes(searchTerm)
-                        );
+                    // Apply sorting first
+                    const sortSelect = document.getElementById('saved-sort');
+                    sortAndRenderResources(savedResources, sortSelect.value);
+                    
+                    // Add event listener for sort change
+                    sortSelect.addEventListener('change', () => {
+                        sortAndRenderResources(savedResources, sortSelect.value);
                     });
                     
-                    renderSavedResources(filteredResources);
-                });
-                
+                    // Add event listener for search
+                    const searchInput = document.getElementById('saved-search');
+                    searchInput.addEventListener('input', () => {
+                        const searchTerm = searchInput.value.toLowerCase().trim();
+                        
+                        if (!searchTerm) {
+                            sortAndRenderResources(savedResources, sortSelect.value);
+                            return;
+                        }
+                        
+                        const filteredResources = savedResources.filter(resource => {
+                            return (
+                                resource.title?.toLowerCase().includes(searchTerm) ||
+                                resource.description?.toLowerCase().includes(searchTerm) ||
+                                resource.source?.toLowerCase().includes(searchTerm) ||
+                                resource.categories?.name?.toLowerCase().includes(searchTerm)
+                            );
+                        });
+                        
+                        renderSavedResources(filteredResources);
+                    });
+                } else {
+                    console.error('Invalid saved resources data structure:', savedResources);
+                    throw new Error('Invalid data received from API');
+                }
             } catch (error) {
                 console.error('Error loading saved resources:', error);
+                const gridElement = document.getElementById('saved-resources-grid');
                 gridElement.innerHTML = `
                     <div class="error-state">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e53e3e; margin-bottom: 1rem;"></i>
@@ -373,11 +390,26 @@
             const gridElement = document.getElementById('saved-resources-grid');
             gridElement.innerHTML = '';
             
-            console.log('Rendering saved resources:', resources);
+            console.log('Rendering saved resources:', resources.length);
             
-            resources.forEach(resource => {
+            if (!resources || resources.length === 0) {
+                console.log('No saved resources to display');
+                gridElement.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-bookmark" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+                        <h3>No saved resources yet</h3>
+                        <p>Resources you save will appear here.</p>
+                        <a href="index.html" class="primary-btn" style="display: inline-block; margin-top: 1rem;">
+                            <i class="fas fa-search"></i> Browse Resources
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            resources.forEach((resource, index) => {
                 try {
-                    console.log('Processing resource:', resource);
+                    console.log(`Processing resource ${index+1}/${resources.length}:`, resource.id);
                     
                     // Create card element
                     const card = document.createElement('div');
@@ -390,7 +422,14 @@
                     const url = resource.url || '#';
                     const rating = resource.rating || '4.5';
                     const source = resource.source || 'Unknown Source';
-                    const categoryName = resource.categories?.name || 'Resource';
+                    
+                    // Get category name safely
+                    let categoryName = 'Resource';
+                    if (resource.categories && resource.categories.name) {
+                        categoryName = resource.categories.name;
+                    } else if (typeof resource.categories === 'string') {
+                        categoryName = resource.categories;
+                    }
                     
                     // Important: Get the correct IDs
                     const savedId = resource.saved_id || resource.id;

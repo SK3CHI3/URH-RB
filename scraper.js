@@ -868,7 +868,7 @@ async function runScraper() {
     for (const site of sitesToScrape) {
       try {
         console.log(`\nScraping ${site.name} (${site.schema.category})...`);
-        const resources = await scrapeWebsite(site);
+      const resources = await scrapeWebsite(site);
         
         // Track resources by site for reporting
         resourcesBySite[site.name] = resources.length;
@@ -897,7 +897,7 @@ async function runScraper() {
           // Don't skip saving in test mode anymore - allow saving test results
           allResources.push(...resources);
         } else {
-          allResources.push(...resources);
+      allResources.push(...resources);
         }
       } catch (error) {
         console.error(`Failed to scrape ${site.name}:`, error.message);
