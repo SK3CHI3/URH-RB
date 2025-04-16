@@ -560,7 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Query resources from Supabase with timeout
         let query = window.supabaseClient
           .from('resources')
-          .select('*, categories(name)');
+          .select('*, categories(name)')
+          .order('created_at', { ascending: false });
         
         // Add category filter if specified
         if (category && category !== 'Featured') {
@@ -623,6 +624,40 @@ document.addEventListener('DOMContentLoaded', () => {
       if (resources && resources.length > 0) {
         const resourceIds = resources.map(r => r.id);
         savedResourcesMap = await checkSavedResources(resourceIds);
+      }
+      
+      // Enhanced sorting logic with better error handling and debug info
+      console.log('Resources before sorting:', resources.length > 0 ? 
+        `First item date: ${resources[0].created_at}, Last item date: ${resources[resources.length-1].created_at}` : 
+        'No resources');
+        
+      // Sort resources to always show newest first
+      try {
+        resources.sort((a, b) => {
+          // Handle missing dates
+          if (!a.created_at && !b.created_at) return 0;
+          if (!a.created_at) return 1;
+          if (!b.created_at) return -1;
+          
+          // Convert to Date objects and compare
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          
+          // Check for invalid dates
+          if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+          if (isNaN(dateA.getTime())) return 1;
+          if (isNaN(dateB.getTime())) return -1;
+          
+          // Sort newest first
+          return dateB - dateA;
+        });
+        
+        console.log('Resources after sorting:', resources.length > 0 ? 
+          `First item date: ${resources[0].created_at}, Last item date: ${resources[resources.length-1].created_at}` : 
+          'No resources');
+      } catch (sortError) {
+        console.error('Error sorting resources:', sortError);
+        // Continue with unsorted resources rather than failing
       }
       
       // Render the resources
