@@ -240,77 +240,36 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Handle saving resources
   async function handleSaveResource(saveBtn, resourceId) {
-    console.log('handleSaveResource called for resource ID:', resourceId);
-    
-    // Prevent multiple simultaneous saves
-    if (isSavingResource) {
-      console.log('Already saving a resource, ignoring click');
-      return;
-    }
+    if (isSavingResource) return;
     
     isSavingResource = true;
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.7';
+    saveBtn.style.transform = 'scale(0.95)';
     
     try {
-      // Check if auth.js is properly loaded
-      if (typeof getCurrentUser !== 'function') {
-        console.error('Auth functions not available - auth.js may not be loaded correctly');
-        showNotification('Authentication system not available. Please refresh the page.', 'error');
-        isSavingResource = false;
-        return;
-      }
-      
-      // Try to get the current user again if not available
-      if (!currentUser) {
-        try {
-          console.log('Attempting to get current user again...');
-          currentUser = await getCurrentUser();
-        } catch (authError) {
-          console.error('Error getting current user:', authError);
-        }
-      }
-      
       // Check if user is logged in
       if (!currentUser) {
-        console.log('User not logged in, redirecting to login');
-        showNotification('Please log in to save resources', 'error');
-        window.location.href = '/login.html?redirect=index.html';
+        // Prompt user to log in
+        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.href);
         return;
       }
       
       const userId = currentUser.id;
-      console.log('User ID for save operation:', userId);
-      
+      const isSaved = savedResourcesMap[resourceId];
       const icon = saveBtn.querySelector('i');
-      const isSaved = icon.classList.contains('fas');
       
-      console.log('Current saved state:', isSaved ? 'Saved' : 'Not saved');
+      console.log('Current save state for resource', resourceId, ':', isSaved ? 'Saved' : 'Not saved');
       
-      // Apply visual feedback immediately
-      saveBtn.style.transform = 'scale(0.95)';
-      saveBtn.style.opacity = '0.7';
-      
-      // Show loading state
-      const originalIcon = icon.className;
-      icon.className = 'fas fa-spinner fa-spin';
-      saveBtn.disabled = true;
-      
-      // Ensure we have the correct base URL for the environment
-      const baseUrl = window.appConfig?.apiUrl || '';
-      
-      // Determine the correct endpoint based on environment
-      let endpoint;
-      if (baseUrl.includes('/.netlify/functions')) {
-        // In production with Netlify Functions
-        endpoint = `${baseUrl}/saved-resources`;
-        console.log('Using Netlify function endpoint:', endpoint);
-      } else {
-        // In development with Express server
-        endpoint = `${baseUrl}/api/user/saved-resources`;
-        console.log('Using Express server endpoint:', endpoint);
-      }
-      
-      // Save the resource
       try {
+        // Determine the correct endpoint based on environment
+        const baseUrl = window.appConfig?.apiUrl || '';
+        console.log('Using base URL:', baseUrl);
+        
+        // Construct the endpoint for saved resources 
+        const endpoint = `${baseUrl}/saved-resources`;
+        console.log('Using endpoint:', endpoint);
+        
         if (!isSaved) {
           console.log('Making POST request to save resource:', endpoint);
           
@@ -322,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
               user_id: userId,
               resource_id: resourceId
-            }),
+            })
           });
           
           if (!response.ok) {
@@ -346,16 +305,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           console.log('Making DELETE request to unsave resource:', endpoint);
           
-          let unsaveUrl;
-          if (baseUrl.includes('/.netlify/functions')) {
-            // In production with Netlify Functions
-            unsaveUrl = `${endpoint}?user_id=${userId}&resource_id=${resourceId}`;
-            console.log('Using Netlify function for unsave:', unsaveUrl);
-          } else {
-            // In development with Express server
-            unsaveUrl = `${endpoint}?user_id=${userId}&resource_id=${resourceId}`;
-            console.log('Using Express server for unsave:', unsaveUrl);
-          }
+          // Correctly construct the URL with query parameters for both environments
+          const queryParams = `?user_id=${encodeURIComponent(userId)}&resource_id=${encodeURIComponent(resourceId)}`;
+          const unsaveUrl = `${endpoint}${queryParams}`;
+          
+          console.log('Using URL for unsave:', unsaveUrl);
           
           const response = await fetch(unsaveUrl, {
             method: 'DELETE',
@@ -520,44 +474,37 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Ensure we have the correct base URL for the environment
       const baseUrl = window.appConfig?.apiUrl || '';
+      console.log('Using base URL for checkSavedResources:', baseUrl);
       
-      // Handle different API paths for server.js vs Netlify Functions
-      let apiUrl;
+      // Construct the correct endpoint
+      const endpoint = `${baseUrl}/saved-resources/check`;
       
       // Convert resourceIds to strings for safety
       const stringResourceIds = resourceIds.map(id => String(id));
       
-      if (baseUrl.includes('/.netlify/functions')) {
-        // In production with Netlify Functions
-        apiUrl = `${baseUrl}/saved-resources/check?user_id=${userId}&resource_ids=${stringResourceIds.join(',')}`;
-      } else {
-        // In development with Express server
-        apiUrl = `${baseUrl}/api/user/${userId}/saved-resources/check?resource_ids=${stringResourceIds.join(',')}`;
-      }
+      // Build the query string
+      const queryString = `?user_id=${encodeURIComponent(userId)}&resource_ids=${encodeURIComponent(stringResourceIds.join(','))}`;
+      const fullUrl = `${endpoint}${queryString}`;
       
-      console.log('Checking saved resources at URL:', apiUrl);
+      console.log('Checking saved status with URL:', fullUrl);
       
-      // Use fetch with timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timed out')), 10000)
-      );
-      
-      const response = await Promise.race([
-        fetch(apiUrl),
-        timeoutPromise
-      ]);
+      const response = await fetch(fullUrl);
       
       if (!response.ok) {
-        console.error('Failed to check saved resources, status:', response.status);
-        throw new Error('Failed to check saved resources');
+        const errorData = await response.json();
+        console.error('Error checking saved resources:', errorData);
+        throw new Error(errorData.message || 'Failed to check saved status');
       }
       
-      const savedMap = await response.json();
-      console.log('Saved resources map:', savedMap);
+      const savedStatusMap = await response.json();
+      console.log('Received saved status map:', savedStatusMap);
       
-      return savedMap;
+      // Update the global saved resources map
+      Object.assign(savedResourcesMap, savedStatusMap);
+      
+      return savedStatusMap;
     } catch (error) {
-      console.error('Error checking saved resources:', error);
+      console.error('Error in checkSavedResources:', error);
       return {};
     }
   }

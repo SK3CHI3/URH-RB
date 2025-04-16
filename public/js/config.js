@@ -1,7 +1,7 @@
 // Configuration for different environments
 const config = {
     development: {
-        apiUrl: 'http://localhost:3000'
+        apiUrl: 'http://localhost:3000/api'
     },
     production: {
         // Force Netlify Functions path to be absolute in production
@@ -40,7 +40,7 @@ function detectEnvironment() {
         console.log('Detected Live Server environment, using Node.js server at port 3000');
         return {
             environment: 'development',
-            apiUrl: 'http://localhost:3000'
+            apiUrl: 'http://localhost:3000/api'
         };
     }
     
@@ -49,7 +49,7 @@ function detectEnvironment() {
         console.log('Detected production environment - using Netlify Functions');
         return {
             environment: 'production',
-            apiUrl: config.production.apiUrl
+            apiUrl: window.location.origin + '/.netlify/functions'
         };
     }
     
