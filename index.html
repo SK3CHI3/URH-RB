@@ -276,7 +276,7 @@
                 </div>
             </div>
             <div class="copyright">
-                &copy; 2024 Universal Resource Hub. Developed by <a href="https://github.com/SK3CHI3" target="_blank">Omollo Victor</a>. All rights reserved.
+                &copy; <span id="current-year"></span> Universal Resource Hub. Developed by <a href="https://github.com/SK3CHI3" target="_blank">Omollo Victor</a>. All rights reserved.
             </div>
         </div>
     </footer>
@@ -294,6 +294,9 @@
     
     <!-- Add category filter script -->
     <script>
+        // Set current year for copyright
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
         function filterByCategory(category) {
             // Find all filter buttons
             const filterButtons = document.querySelectorAll('.filter-btn');

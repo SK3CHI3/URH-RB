@@ -159,12 +159,15 @@
                 <p>Portfolio: <a href="https://omollo-victor-potfolio.netlify.app/" target="_blank">Visit my portfolio</a></p>
             </div>
             <div class="copyright">
-                <p>&copy; 2024 Universal Resource Hub. Developed by <a href="https://github.com/SK3CHI3" target="_blank">Omollo Victor</a>. All rights reserved.</p>
+                <p>&copy; <span id="current-year"></span> Universal Resource Hub. Developed by <a href="https://github.com/SK3CHI3" target="_blank">Omollo Victor</a>. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
+        // Set current year for copyright
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
         // URL validation function
         function isValidUrl(url) {
             try {
