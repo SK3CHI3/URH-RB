@@ -8,11 +8,26 @@
   external_node_modules = ["@supabase/supabase-js"]
   node_bundler = "esbuild"
 
+# Master API Router - handles all API paths through a single function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api-router/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/user/*"
+  to = "/.netlify/functions/api-router/user/:splat"
+  status = 200
+  force = true
+
+# Direct routes to specific functions
 [[redirects]]
   from = "/public/*"
   to = "/public/:splat"
   status = 200
 
+# Direct routes to Netlify Functions without the /api prefix
 [[redirects]]
   from = "/saved-resources*"
   to = "/.netlify/functions/saved-resources:splat"
@@ -31,6 +46,7 @@
   status = 200
   force = true
 
+# Routes with /api prefix
 [[redirects]]
   from = "/api/user/saved-resources*"
   to = "/.netlify/functions/saved-resources:splat"
@@ -55,6 +71,7 @@
   status = 200
   force = true
 
+# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
