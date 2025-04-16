@@ -77,7 +77,7 @@ exports.handler = async (event, context) => {
           `)
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
-
+        
         if (joinError) {
           console.error('Supabase saved resources query error:', joinError);
           throw new Error('Database query failed');
