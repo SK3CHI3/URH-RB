@@ -266,8 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const baseUrl = window.appConfig?.apiUrl || '';
         console.log('Using base URL:', baseUrl);
         
-        // Construct the endpoint for saved resources 
-        const endpoint = `${baseUrl}/saved-resources`;
+        // Construct the endpoint for saved resources based on environment
+        let endpoint;
+        if (baseUrl.includes('/.netlify/functions')) {
+          // In production with Netlify Functions
+          endpoint = `${baseUrl}/saved-resources`;
+        } else {
+          // In development with Express server
+          endpoint = `${baseUrl}/user/saved-resources`;
+        }
+        
         console.log('Using endpoint:', endpoint);
         
         if (!isSaved) {
@@ -476,14 +484,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const baseUrl = window.appConfig?.apiUrl || '';
       console.log('Using base URL for checkSavedResources:', baseUrl);
       
-      // Construct the correct endpoint
-      const endpoint = `${baseUrl}/saved-resources/check`;
+      // Construct the correct endpoint based on environment
+      let endpoint;
+      if (baseUrl.includes('/.netlify/functions')) {
+        // In production with Netlify Functions
+        endpoint = `${baseUrl}/saved-resources/check`;
+      } else {
+        // In development with Express server
+        endpoint = `${baseUrl}/user/${userId}/saved-resources/check`;
+      }
       
       // Convert resourceIds to strings for safety
       const stringResourceIds = resourceIds.map(id => String(id));
       
-      // Build the query string
-      const queryString = `?user_id=${encodeURIComponent(userId)}&resource_ids=${encodeURIComponent(stringResourceIds.join(','))}`;
+      // Build the query string - note the difference in structure between environments
+      let queryString;
+      if (baseUrl.includes('/.netlify/functions')) {
+        queryString = `?user_id=${encodeURIComponent(userId)}&resource_ids=${encodeURIComponent(stringResourceIds.join(','))}`;
+      } else {
+        queryString = `?resource_ids=${encodeURIComponent(stringResourceIds.join(','))}`;
+      }
+      
       const fullUrl = `${endpoint}${queryString}`;
       
       console.log('Checking saved status with URL:', fullUrl);
@@ -569,9 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use the API endpoint if Supabase client is not available
         const baseUrl = window.appConfig?.apiUrl || '';
         
-        // Handle different API paths for server.js vs Netlify Functions
+        // Construct the API URL based on environment
         let apiUrl;
-        
         if (baseUrl.includes('/.netlify/functions')) {
           // In production with Netlify Functions
           apiUrl = category && category !== 'Featured'
@@ -580,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           // In development with Express server
           apiUrl = category && category !== 'Featured' 
-            ? `${baseUrl}/api/resources?category=${encodeURIComponent(category)}`
-            : `${baseUrl}/api/resources`;
+            ? `${baseUrl}/resources?category=${encodeURIComponent(category)}`
+            : `${baseUrl}/resources`;
         }
           
         console.log('Fetching from API URL:', apiUrl);

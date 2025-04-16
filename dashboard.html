@@ -260,11 +260,11 @@
                 let apiUrl;
                 if (baseUrl.includes('/.netlify/functions')) {
                     // In production with Netlify Functions
-                    apiUrl = `${baseUrl}/saved-resources?user_id=${user.id}`;
+                    apiUrl = `${baseUrl}/saved-resources?user_id=${encodeURIComponent(user.id)}`;
                     console.log('Using Netlify function path:', apiUrl);
                 } else {
                     // In development with Express server
-                    apiUrl = `${baseUrl}/api/user/${user.id}/saved-resources`;
+                    apiUrl = `${baseUrl}/user/${encodeURIComponent(user.id)}/saved-resources`;
                     console.log('Using Express server path:', apiUrl);
                 }
                 
@@ -516,11 +516,11 @@
                                 let unsaveUrl;
                                 if (baseUrl.includes('/.netlify/functions')) {
                                     // In production with Netlify Functions
-                                    unsaveUrl = `${baseUrl}/saved-resources?user_id=${user.id}&resource_id=${resourceId}`;
+                                    unsaveUrl = `${baseUrl}/saved-resources?user_id=${encodeURIComponent(user.id)}&resource_id=${encodeURIComponent(resourceId)}`;
                                     console.log('Using Netlify function for unsave:', unsaveUrl);
                                 } else {
                                     // In development with Express server
-                                    unsaveUrl = `${baseUrl}/api/user/saved-resources?user_id=${user.id}&resource_id=${resourceId}`;
+                                    unsaveUrl = `${baseUrl}/user/saved-resources?user_id=${encodeURIComponent(user.id)}&resource_id=${encodeURIComponent(resourceId)}`;
                                     console.log('Using Express server for unsave:', unsaveUrl);
                                 }
                                 
