@@ -297,9 +297,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // Ensure we have the correct base URL for the environment
       const baseUrl = window.appConfig?.apiUrl || '';
       
-      // For local development, we need to use the full path including /api
-      const endpoint = `${baseUrl}/api/user/saved-resources`;
-      console.log('Using endpoint:', endpoint);
+      // Determine the correct endpoint based on environment
+      let endpoint;
+      if (baseUrl.includes('/.netlify/functions')) {
+        // In production with Netlify Functions
+        endpoint = `${baseUrl}/saved-resources`;
+        console.log('Using Netlify function endpoint:', endpoint);
+      } else {
+        // In development with Express server
+        endpoint = `${baseUrl}/api/user/saved-resources`;
+        console.log('Using Express server endpoint:', endpoint);
+      }
       
       // Save the resource
       try {
@@ -338,7 +346,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           console.log('Making DELETE request to unsave resource:', endpoint);
           
-          const response = await fetch(`${endpoint}?user_id=${userId}&resource_id=${resourceId}`, {
+          let unsaveUrl;
+          if (baseUrl.includes('/.netlify/functions')) {
+            // In production with Netlify Functions
+            unsaveUrl = `${endpoint}?user_id=${userId}&resource_id=${resourceId}`;
+            console.log('Using Netlify function for unsave:', unsaveUrl);
+          } else {
+            // In development with Express server
+            unsaveUrl = `${endpoint}?user_id=${userId}&resource_id=${resourceId}`;
+            console.log('Using Express server for unsave:', unsaveUrl);
+          }
+          
+          const response = await fetch(unsaveUrl, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
