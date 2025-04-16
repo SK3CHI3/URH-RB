@@ -1,25 +1,45 @@
-# Dependency directories
+# Node modules
 node_modules/
-npm-debug.log
-yarn-error.log
-yarn-debug.log
 
 # Environment variables
 .env
 .env.local
-.env.development
-.env.test
-.env.production
+.env.*.local
 
-# Logs
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 logs/
 *.log
 
-# Build output
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build directories
 dist/
 build/
+
+# Cache and temp directories
+.cache/
+.temp/
+.tmp/
+
+# Netlify local dev
+.netlify/
+
+# Build output
 .vercel
-.netlify
 
 # Editor and OS files
 .DS_Store

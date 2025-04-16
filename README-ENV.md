@@ -11,8 +11,10 @@ Edit the `.env` file in this directory and replace the placeholder values with y
 ```
 # Find these values in your Supabase dashboard > Project Settings > API
 SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_KEY=your-supabase-service-role-key
+SUPABASE_KEY=your_supabase_service_role_key_here
 ```
+
+**IMPORTANT: Never commit your actual API keys to the repository. The `.env` file should be added to `.gitignore`.**
 
 ### Step 2: Install the Netlify CLI (if not already installed)
 
@@ -31,10 +33,10 @@ netlify login
 Run the deployment script:
 
 ```bash
-node deploy-env.js
+node set-env.js
 ```
 
-Follow the prompts to enter your Netlify site ID or site name.
+This script safely reads your local `.env` file and securely sets the environment variables in your Netlify project without exposing them in logs or build output.
 
 ### Step 5: Trigger a New Deployment
 
@@ -51,8 +53,8 @@ If you prefer to set up variables manually:
 1. Go to your Netlify site dashboard
 2. Navigate to Site settings > Build & deploy > Environment
 3. Click "Add variable" and add the following variables:
-   - Key: `SUPABASE_URL` | Value: `https://your-project-id.supabase.co`
-   - Key: `SUPABASE_KEY` | Value: `your-supabase-service-role-key`
+   - Key: `SUPABASE_URL` | Value: Your Supabase project URL
+   - Key: `SUPABASE_KEY` | Value: Your Supabase service role key
 4. Click "Save" after adding each variable
 5. Deploy your site again for the changes to take effect
 
@@ -62,7 +64,8 @@ If you have Netlify MCP Server set up:
 
 1. Configure the environment variables using the MCP tool:
    ```
-   set-env-vars --siteId YOUR_SITE_ID --envVars SUPABASE_URL=your_url SUPABASE_KEY=your_key
+   set-env-vars --siteId YOUR_SITE_ID --envVars SUPABASE_URL=your_url
+   set-env-vars --siteId YOUR_SITE_ID --envVars SUPABASE_KEY=your_key --secret
    ```
 
 2. Import variables from your .env file:
